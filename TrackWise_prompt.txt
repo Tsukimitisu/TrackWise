@@ -1,0 +1,619 @@
+Build a full-stack web system called TrackWise using React.js frontend and Laravel backend API.
+
+TrackWise is a flexible OJT, internship, trainee, employee, freelancer, and work-hours tracking system. It must support multiple organizations, multiple user roles, DTR attendance, required hours tracking, daily reports, weekly narrative reports, camera documentation, printable reports, and approval workflows.
+
+TECH STACK:
+Frontend:
+- React.js
+- Tailwind CSS
+- React Router
+- Axios
+- ShadCN UI or clean reusable components
+
+Backend:
+- Laravel REST API
+- Laravel Sanctum authentication
+- MySQL or PostgreSQL database
+- Laravel migrations, seeders, models, controllers, policies, form requests, and API resources
+
+Storage:
+- Store uploaded documentation photos, DTR photos, profile photos, and documents using Laravel storage.
+- Use public storage link for development.
+
+SYSTEM GOAL:
+Create a scalable multi-user tracking system that is not limited to OJT only. It should work for:
+- OJT students
+- Interns
+- Trainees
+- Employees
+- Freelancers
+- Volunteers
+- Field workers
+
+USER ROLES:
+1. Super Admin
+- Can manage all organizations
+- Can view all users, programs, attendance, reports, and system analytics
+- Can activate/deactivate organizations
+
+2. Organization Admin
+- Can manage one organization
+- Can create programs/tracker setups
+- Can add coordinators, supervisors, students, interns, workers
+- Can set required hours
+- Can view reports and progress
+
+3. Coordinator / Adviser
+- Can monitor assigned students or trainees
+- Can review reports
+- Can view DTR and progress
+- Can export/print reports
+
+4. Company Supervisor
+- Can validate attendance
+- Can approve/reject DTR
+- Can approve/reject daily reports
+- Can approve/reject weekly narrative reports
+- Can add comments and evaluations
+
+5. Student / Intern / Worker
+- Can time in and time out
+- Can upload camera proof
+- Can submit daily reports
+- Can submit weekly narrative reports
+- Can view completed hours and remaining hours
+- Can print DTR and reports
+- Can upload required documents
+
+6. Viewer / Auditor
+- Read-only access only
+
+CORE MODULES TO BUILD:
+
+1. Authentication and Role-Based Access
+- Login
+- Register or admin-created accounts
+- Logout
+- Protected routes
+- Role-based sidebar and dashboards
+- Laravel Sanctum token/session authentication
+- Middleware permissions per role
+
+2. Organization Management
+- Create, update, view, activate/deactivate organizations
+- Organization types: school, company, training center, agency, freelance team, government office
+- Each organization must have separate users, programs, reports, and settings
+
+3. Program / Tracker Setup
+Admins can create programs such as:
+- BSIT OJT 500 Hours
+- Internship 600 Hours
+- Employee Training 120 Hours
+- Freelancer Work Tracker
+
+Program fields:
+- name
+- description
+- organization_id
+- required_hours
+- start_date
+- end_date
+- status
+- report requirements: daily, weekly, monthly optional
+
+4. User Program Assignment
+- Assign student/intern/worker to a program
+- Assign supervisor and coordinator
+- Track required hours, completed hours, remaining hours, and completion percentage
+- Status: active, completed, dropped, suspended
+
+5. Attendance / DTR Module
+Student can:
+- Time in
+- Time out
+- Upload time-in photo
+- Upload time-out photo
+- Add remarks
+- Optional GPS latitude/longitude
+
+System must:
+- Calculate total rendered hours
+- Deduct break minutes
+- Prevent duplicate time-in for same date
+- Prevent time-out without time-in
+- Prevent editing approved attendance unless admin allows correction
+- Mark status: present, late, absent, undertime, pending, approved, rejected
+- Allow supervisor approval
+
+Printable DTR must include:
+- Student name
+- Organization
+- Program
+- Required hours
+- Completed hours
+- Remaining hours
+- Date
+- Time in
+- Time out
+- Total hours
+- Remarks
+- Approval status
+- Supervisor signature placeholder
+- Coordinator signature placeholder
+
+6. Camera Documentation Module
+- Upload or capture photo documentation
+- Attach photos to attendance, daily reports, or general documentation
+- Add caption
+- Store date/time taken
+- Optional GPS location
+- Preview uploaded images
+- Filter documentation by date/program/status
+
+7. Daily Report Module
+Student submits:
+- report_date
+- tasks_done
+- tools_used
+- problems_encountered
+- learnings
+- attached photos
+- status: draft, submitted, approved, rejected, needs_revision
+
+Supervisor/coordinator can:
+- review report
+- approve/reject
+- add comment
+
+8. Weekly Narrative Report Module
+Student submits:
+- week_number
+- start_date
+- end_date
+- summary_of_activities
+- skills_learned
+- challenges
+- reflection
+- attached documentation
+- status
+
+Optional:
+- Auto-generate weekly narrative draft from approved daily reports.
+
+9. Approval Workflow
+Create reusable approval logic for:
+- attendance logs
+- daily reports
+- weekly reports
+- uploaded documents
+- evaluations
+
+Approval statuses:
+- draft
+- submitted
+- pending
+- approved
+- rejected
+- needs_revision
+
+Store approval history in approval_logs table.
+
+10. Notifications
+Notify users when:
+- DTR is approved/rejected
+- Daily report is approved/rejected
+- Weekly report is approved/rejected
+- Missing time-out
+- Weekly report is due
+- Required hours completed
+- Document needs revision
+
+11. Document Checklist
+Allow students/workers to upload required documents:
+- Resume
+- Endorsement letter
+- MOA
+- Waiver
+- Parent consent
+- Certificate
+- Evaluation form
+- Other custom documents
+
+Admin can mark documents:
+- pending
+- approved
+- rejected
+- needs_revision
+
+12. Evaluation Module
+Supervisor can evaluate student/worker using scores:
+- attendance_score
+- performance_score
+- communication_score
+- technical_score
+- professionalism_score
+- comments
+
+13. Printable / Export Reports
+Create printable pages or PDF-ready views for:
+- DTR
+- Daily report
+- Weekly narrative report
+- Monthly summary
+- Completion summary
+- Evaluation form
+
+Use browser print first. Make the layout clean and formal.
+
+DATABASE TABLES REQUIRED:
+
+users:
+- id
+- organization_id nullable
+- role_id
+- first_name
+- last_name
+- email
+- password
+- phone
+- profile_photo
+- status
+- created_at
+- updated_at
+
+roles:
+- id
+- name
+- description
+- created_at
+- updated_at
+
+organizations:
+- id
+- name
+- type
+- address
+- contact_email
+- contact_phone
+- logo
+- status
+- created_at
+- updated_at
+
+programs:
+- id
+- organization_id
+- name
+- description
+- required_hours
+- start_date
+- end_date
+- status
+- created_at
+- updated_at
+
+user_programs:
+- id
+- user_id
+- program_id
+- supervisor_id nullable
+- coordinator_id nullable
+- required_hours
+- completed_hours
+- status
+- created_at
+- updated_at
+
+attendance_logs:
+- id
+- user_program_id
+- date
+- time_in
+- time_out nullable
+- break_minutes default 0
+- total_hours default 0
+- status
+- time_in_photo nullable
+- time_out_photo nullable
+- latitude nullable
+- longitude nullable
+- remarks nullable
+- approval_status
+- approved_by nullable
+- created_at
+- updated_at
+
+daily_reports:
+- id
+- user_program_id
+- report_date
+- tasks_done
+- tools_used
+- problems_encountered
+- learnings
+- status
+- submitted_at nullable
+- reviewed_by nullable
+- review_comment nullable
+- created_at
+- updated_at
+
+weekly_reports:
+- id
+- user_program_id
+- week_number
+- start_date
+- end_date
+- summary
+- skills_learned
+- challenges
+- reflection
+- status
+- submitted_at nullable
+- reviewed_by nullable
+- review_comment nullable
+- created_at
+- updated_at
+
+documentation_files:
+- id
+- user_program_id
+- attendance_log_id nullable
+- daily_report_id nullable
+- weekly_report_id nullable
+- file_url
+- file_type
+- caption nullable
+- taken_at nullable
+- latitude nullable
+- longitude nullable
+- created_at
+- updated_at
+
+approval_logs:
+- id
+- approvable_type
+- approvable_id
+- reviewed_by
+- status
+- comment nullable
+- created_at
+- updated_at
+
+notifications:
+- id
+- user_id
+- title
+- message
+- type
+- is_read default false
+- created_at
+- updated_at
+
+evaluations:
+- id
+- user_program_id
+- supervisor_id
+- attendance_score
+- performance_score
+- communication_score
+- technical_score
+- professionalism_score
+- comments
+- created_at
+- updated_at
+
+documents:
+- id
+- user_program_id
+- document_type
+- file_url
+- status
+- remarks nullable
+- uploaded_at
+- reviewed_by nullable
+- created_at
+- updated_at
+
+system_settings:
+- id
+- organization_id nullable
+- setting_key
+- setting_value
+- created_at
+- updated_at
+
+FRONTEND PAGES:
+
+Public:
+- Landing page
+- Login
+- Register
+- Forgot password
+
+Super Admin:
+- Dashboard
+- Organizations
+- Users
+- Programs
+- Reports
+- System Settings
+
+Organization Admin:
+- Dashboard
+- Manage Users
+- Manage Programs
+- Assign Users to Programs
+- Attendance Records
+- Reports
+- Documents
+- Settings
+
+Coordinator:
+- Dashboard
+- Assigned Trainees
+- DTR Monitoring
+- Daily Reports
+- Weekly Reports
+- Progress Tracking
+- Printable Reports
+
+Supervisor:
+- Dashboard
+- Assigned Trainees
+- Pending DTR Approval
+- Pending Daily Reports
+- Pending Weekly Reports
+- Evaluations
+- Documentation Review
+
+Student / Worker:
+- Dashboard
+- Time In / Time Out
+- My Attendance
+- My DTR
+- Daily Reports
+- Weekly Narrative Reports
+- Documentation
+- Required Documents
+- My Progress
+- Profile
+
+UI REQUIREMENTS:
+- Clean modern dashboard
+- Responsive layout
+- Sidebar navigation based on role
+- Header with user name, role, notifications, and logout
+- Cards for statistics
+- Tables with search, filter, pagination
+- Modals for add/edit/view
+- Status badges
+- Progress bar for completed hours
+- Printable report layout
+- Mobile-friendly time-in/time-out page
+- Camera upload/capture interface
+
+IMPORTANT BUSINESS RULES:
+- Users only see data from their own organization unless they are Super Admin.
+- Students only see their own attendance, reports, documents, and progress.
+- Supervisors only see assigned users.
+- Coordinators only see assigned users or users under their organization.
+- Completed hours should update only from approved attendance logs.
+- Rejected attendance must not count toward completed hours.
+- One attendance record per user per date unless admin enables multiple sessions.
+- Reports can be edited while draft or needs_revision, but not after approval.
+- All approvals must create an approval_logs record.
+- Uploaded files must be connected to the correct user_program.
+
+DELIVERABLES:
+1. Laravel backend with:
+- migrations
+- models
+- relationships
+- seeders for roles and demo users
+- controllers
+- API routes
+- auth using Sanctum
+- policies/middleware
+- validation requests
+
+2. React frontend with:
+- reusable components
+- role-based layouts
+- protected routes
+- API services
+- dashboards
+- CRUD pages
+- attendance time-in/time-out
+- report forms
+- printable DTR page
+
+3. Use clean, scalable code.
+4. Add comments only where needed.
+5. Make the system easy to extend later for mobile app support.
+
+TASK-BY-TASK IMPLEMENTATION:
+1. Set up the Laravel backend foundation.
+- Initialize the API project.
+- Configure database, environment, Sanctum, and storage.
+- Create base folders for models, controllers, requests, policies, resources, and services.
+
+2. Build authentication and role access.
+- Create users, roles, and auth endpoints.
+- Seed default roles and demo users.
+- Add login, logout, register, and protected API routes.
+- Add role-based middleware and policies.
+
+3. Create organization management.
+- Build organizations migration, model, controller, and API routes.
+- Add create, update, view, activate, and deactivate actions.
+- Enforce organization-level data isolation.
+
+4. Create program and assignment management.
+- Build programs and user_programs tables, models, relationships, and validation.
+- Add program CRUD.
+- Add user-to-program assignment, supervisor assignment, and coordinator assignment.
+- Track required hours, completed hours, remaining hours, and status.
+
+5. Build the attendance and DTR module.
+- Create attendance_logs migration, model, controller, and requests.
+- Implement time in, time out, photo uploads, remarks, and GPS fields.
+- Prevent duplicate time-in, invalid time-out, and edits to approved logs.
+- Calculate hours, break deductions, and approval status.
+
+6. Build approval history and review flow.
+- Create approval_logs and reusable approval actions.
+- Add approve, reject, and needs_revision flows for attendance, reports, documents, and evaluations.
+- Store reviewer comments and timestamps.
+
+7. Build daily reports.
+- Create daily_reports migration, model, controller, and validation.
+- Add draft, submit, approve, reject, and revision states.
+- Attach documentation files and review comments.
+
+8. Build weekly narrative reports.
+- Create weekly_reports migration, model, controller, and validation.
+- Add submission and review workflow.
+- Optionally generate drafts from approved daily reports.
+
+9. Build documentation and document checklist modules.
+- Create documentation_files and documents tables, models, controllers, and routes.
+- Support uploads, captions, timestamps, file types, and optional GPS.
+- Add document checklist statuses and review actions.
+
+10. Build notifications.
+- Create notification records and user notification endpoints.
+- Trigger notifications for approvals, rejections, missing time-out, due reports, and completed hours.
+
+11. Build evaluations.
+- Create evaluations migration, model, controller, and validation.
+- Add supervisor scoring and comments.
+- Connect evaluations to assigned user programs.
+
+12. Build printable and export-ready views.
+- Create printable DTR, daily report, weekly report, completion summary, and evaluation layouts.
+- Make the pages clean, formal, and browser-print friendly.
+
+13. Build the React frontend foundation.
+- Initialize layouts, routing, API service layer, and reusable UI components.
+- Add protected routes, role-based navigation, and shared dashboard shell.
+
+14. Build frontend auth and role-based dashboards.
+- Create login, register, forgot password, and logout screens.
+- Add role-aware dashboards and sidebar menus for every user type.
+
+15. Build frontend management pages.
+- Create organization, user, program, assignment, attendance, report, document, evaluation, and settings pages.
+- Add tables, filters, pagination, modals, forms, and status badges.
+
+16. Build attendance, reporting, and documentation UX.
+- Add mobile-friendly time-in/time-out.
+- Add report forms and document upload interfaces.
+- Add progress bars and printable page actions.
+
+17. Finalize validation and polish.
+- Add request validation, error handling, and loading states.
+- Check permissions, organization isolation, and approval behavior.
+- Keep the code clean, scalable, and ready for future mobile app support.
+
+Make sure the system is production-ready, scalable, secure, and understandable.
