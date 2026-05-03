@@ -50,4 +50,18 @@ class UserProgram extends Model
     {
         return $this->hasMany(AttendanceLog::class);
     }
+
+    public function remainingHours(): float
+    {
+        return max(0, (float) $this->required_hours - (float) $this->completed_hours);
+    }
+
+    public function progressPercentage(): float
+    {
+        if ((float) $this->required_hours <= 0) {
+            return 0;
+        }
+
+        return min(100, round(((float) $this->completed_hours / (float) $this->required_hours) * 100, 2));
+    }
 }

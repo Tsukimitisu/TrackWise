@@ -2,12 +2,14 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthContext';
 import ProtectedRoute from './auth/ProtectedRoute';
 import AppShell from './components/AppShell';
+import AttendancePage from './pages/attendance/AttendancePage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import ModulePage from './pages/ModulePage';
 import ForgotPasswordPage from './pages/public/ForgotPasswordPage';
 import LandingPage from './pages/public/LandingPage';
 import LoginPage from './pages/public/LoginPage';
 import RegisterPage from './pages/public/RegisterPage';
+import TimeInOutPage from './pages/attendance/TimeInOutPage';
 
 const modulePage = (title: string, description: string) => <ModulePage title={title} description={description} />;
 
@@ -27,8 +29,8 @@ export default function App() {
             <Route path="users" element={modulePage('Users', 'Manage role-based user accounts and assignments.')} />
             <Route path="programs" element={modulePage('Programs', 'Configure tracker programs and required hours.')} />
             <Route path="assignments" element={modulePage('Assignments', 'Assign users to programs, supervisors, and coordinators.')} />
-            <Route path="attendance" element={modulePage('Attendance', 'Monitor DTR logs, time-in, time-out, and approvals.')} />
-            <Route path="time-in-out" element={modulePage('Time In / Time Out', 'Mobile-friendly attendance capture interface.')} />
+            <Route path="attendance" element={<AttendancePage />} />
+            <Route path="time-in-out" element={<TimeInOutPage />} />
             <Route path="daily-reports" element={modulePage('Daily Reports', 'Create, submit, and review daily work reports.')} />
             <Route path="weekly-reports" element={modulePage('Weekly Reports', 'Create, submit, and review weekly narrative reports.')} />
             <Route path="documents" element={modulePage('Documents', 'Upload, preview, and review supporting documents.')} />

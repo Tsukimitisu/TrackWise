@@ -8,10 +8,12 @@ use App\Models\AttendanceLog;
 use App\Models\DailyReport;
 use App\Models\Document;
 use App\Models\Evaluation;
+use App\Models\UserProgram;
 use App\Models\WeeklyReport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class ApprovalController extends Controller
 {
@@ -25,18 +27,24 @@ class ApprovalController extends Controller
         $approvable = $this->resolveApprovable($type, $id);
 
         if (! $approvable) {
-            return response()->json(['message' => 'Approvaable record not found.'], 404);
+            return response()->json(['message' => 'Approvable record not found.'], 404);
         }
 
-        $this->applyStatus($approvable, $validated['status']);
+        DB::transaction(function () use ($approvable, $validated, $request): void {
+            $this->applyStatus($approvable, $validated['status'], $validated['comment'] ?? null, (int) $request->user()->id);
 
-        ApprovalLog::create([
-            'approvable_type' => $approvable::class,
-            'approvable_id' => $approvable->getKey(),
-            'reviewed_by' => (int) $request->user()->id,
-            'status' => $validated['status'],
-            'comment' => $validated['comment'] ?? null,
-        ]);
+            ApprovalLog::create([
+                'approvable_type' => $approvable::class,
+                'approvable_id' => $approvable->getKey(),
+                'reviewed_by' => (int) $request->user()->id,
+                'status' => $validated['status'],
+                'comment' => $validated['comment'] ?? null,
+            ]);
+
+            if ($approvable instanceof AttendanceLog) {
+                $this->refreshUserProgramHours($approvable->user_program_id);
+            }
+        });
 
         return response()->json($approvable->refresh());
     }
@@ -53,24 +61,37 @@ class ApprovalController extends Controller
         };
     }
 
-    private function applyStatus(Model $approvable, string $status): void
+    private function applyStatus(Model $approvable, string $status, ?string $comment, int $reviewedBy): void
     {
         if ($approvable instanceof AttendanceLog) {
             $approvable->approval_status = $status;
-            $approvable->approved_by = request()->user()->id;
+            $approvable->approved_by = $reviewedBy;
             $approvable->save();
 
             return;
         }
 
-        if (property_exists($approvable, 'status')) {
+        if ($approvable instanceof DailyReport || $approvable instanceof WeeklyReport || $approvable instanceof Document) {
             $approvable->status = $status;
-            if ($approvable instanceof DailyReport || $approvable instanceof WeeklyReport || $approvable instanceof Document) {
-                $approvable->reviewed_by = request()->user()->id;
-                $approvable->review_comment = request()->input('comment');
-            }
-
+            $approvable->reviewed_by = $reviewedBy;
+            $approvable->review_comment = $comment;
             $approvable->save();
         }
+
+        if ($approvable instanceof Evaluation) {
+            $approvable->save();
+        }
+    }
+
+    private function refreshUserProgramHours(int $userProgramId): void
+    {
+        $completedHours = AttendanceLog::query()
+            ->where('user_program_id', $userProgramId)
+            ->where('approval_status', 'approved')
+            ->sum('total_hours');
+
+        UserProgram::query()->whereKey($userProgramId)->update([
+            'completed_hours' => $completedHours,
+        ]);
     }
 }

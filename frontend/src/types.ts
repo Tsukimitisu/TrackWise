@@ -13,4 +13,11 @@ export interface AuthUser {
   email: string;
   role: { id: number; name: RoleName };
   organization?: { id: number; name: string } | null;
+  userPrograms?: Array<{
+    id: number;
+    required_hours: number;
+    completed_hours: number;
+    status: string;
+    program?: { id: number; name: string };
+  }>;
 }

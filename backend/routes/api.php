@@ -25,6 +25,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('programs', ProgramController::class);
     Route::apiResource('assignments', AssignmentController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
+    Route::post('/attendance-logs/clock-in', [AttendanceController::class, 'clockIn']);
+    Route::post('/attendance-logs/clock-out', [AttendanceController::class, 'clockOut']);
     Route::apiResource('attendance-logs', AttendanceController::class);
     Route::apiResource('daily-reports', DailyReportController::class);
     Route::apiResource('weekly-reports', WeeklyReportController::class);

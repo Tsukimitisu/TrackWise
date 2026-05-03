@@ -1,0 +1,225 @@
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+import client from '../../api/client';
+import { useAuth } from '../../auth/AuthContext';
+
+interface AttendanceLogItem {
+  id: number;
+  date: string;
+  time_in: string | null;
+  time_out: string | null;
+  total_hours: number;
+  status: string;
+  approval_status: string;
+}
+
+export default function TimeInOutPage() {
+  const { user } = useAuth();
+  const defaultProgramId = user?.userPrograms?.[0]?.id?.toString() ?? '';
+  const [form, setForm] = useState({
+    user_program_id: defaultProgramId,
+    date: new Date().toISOString().slice(0, 10),
+    time_in: new Date().toTimeString().slice(0, 5),
+    time_out: '',
+    break_minutes: '0',
+    remarks: '',
+  });
+  const [logs, setLogs] = useState<AttendanceLogItem[]>([]);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setForm((current) => ({ ...current, user_program_id: defaultProgramId }));
+  }, [defaultProgramId]);
+
+  useEffect(() => {
+    const loadLogs = async () => {
+      const response = await client.get('/attendance-logs');
+      setLogs(response.data.data ?? []);
+    };
+
+    void loadLogs();
+  }, []);
+
+  const selectedProgramLabel = useMemo(() => {
+    const assignment = user?.userPrograms?.find((item) => String(item.id) === form.user_program_id);
+    return assignment?.program?.name ?? 'Select your assignment';
+  }, [form.user_program_id, user?.userPrograms]);
+
+  const submitClockIn = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+    setMessage(null);
+
+    try {
+      await client.post('/attendance-logs/clock-in', {
+        user_program_id: Number(form.user_program_id),
+        date: form.date,
+        time_in: form.time_in,
+        break_minutes: Number(form.break_minutes || 0),
+        remarks: form.remarks,
+      });
+      setMessage('Time in saved.');
+      const response = await client.get('/attendance-logs');
+      setLogs(response.data.data ?? []);
+    } catch {
+      setError('Unable to save time in.');
+    }
+  };
+
+  const submitClockOut = async () => {
+    setError(null);
+    setMessage(null);
+
+    try {
+      await client.post('/attendance-logs/clock-out', {
+        user_program_id: Number(form.user_program_id),
+        date: form.date,
+        time_out: form.time_out || new Date().toTimeString().slice(0, 5),
+        break_minutes: Number(form.break_minutes || 0),
+        remarks: form.remarks,
+      });
+      setMessage('Time out saved.');
+      const response = await client.get('/attendance-logs');
+      setLogs(response.data.data ?? []);
+    } catch {
+      setError('Unable to save time out.');
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-soft backdrop-blur-xl">
+        <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Attendance Capture</p>
+        <h1 className="mt-2 text-3xl font-black tracking-tight text-ink-900">Time In / Time Out</h1>
+        <p className="mt-3 max-w-3xl text-slate-600">Record a daily log, attach the rendered hours later through approval, and keep the flow mobile-friendly.</p>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+        <form onSubmit={submitClockIn} className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-soft backdrop-blur-xl">
+          <div className="grid gap-4">
+            <label className="block text-sm font-medium text-slate-700">
+              Assigned Program
+              <select
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ink-400"
+                value={form.user_program_id}
+                onChange={(event) => setForm((current) => ({ ...current, user_program_id: event.target.value }))}
+              >
+                <option value="">Select assignment</option>
+                {user?.userPrograms?.map((assignment) => (
+                  <option key={assignment.id} value={assignment.id}>
+                    {assignment.program?.name ?? `Assignment #${assignment.id}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block text-sm font-medium text-slate-700">
+                Date
+                <input
+                  type="date"
+                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ink-400"
+                  value={form.date}
+                  onChange={(event) => setForm((current) => ({ ...current, date: event.target.value }))}
+                />
+              </label>
+
+              <label className="block text-sm font-medium text-slate-700">
+                Time In
+                <input
+                  type="time"
+                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ink-400"
+                  value={form.time_in}
+                  onChange={(event) => setForm((current) => ({ ...current, time_in: event.target.value }))}
+                />
+              </label>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block text-sm font-medium text-slate-700">
+                Time Out
+                <input
+                  type="time"
+                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ink-400"
+                  value={form.time_out}
+                  onChange={(event) => setForm((current) => ({ ...current, time_out: event.target.value }))}
+                />
+              </label>
+
+              <label className="block text-sm font-medium text-slate-700">
+                Break Minutes
+                <input
+                  type="number"
+                  min="0"
+                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ink-400"
+                  value={form.break_minutes}
+                  onChange={(event) => setForm((current) => ({ ...current, break_minutes: event.target.value }))}
+                />
+              </label>
+            </div>
+
+            <label className="block text-sm font-medium text-slate-700">
+              Remarks
+              <textarea
+                className="mt-2 min-h-28 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ink-400"
+                value={form.remarks}
+                onChange={(event) => setForm((current) => ({ ...current, remarks: event.target.value }))}
+              />
+            </label>
+
+            {message ? <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{message}</p> : null}
+            {error ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p> : null}
+
+            <div className="flex flex-wrap gap-3">
+              <button type="submit" className="rounded-2xl bg-ink-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink-700">
+                Time In
+              </button>
+              <button
+                type="button"
+                onClick={submitClockOut}
+                className="rounded-2xl border border-ink-200 bg-white px-5 py-3 text-sm font-semibold text-ink-800 transition hover:bg-ink-50"
+              >
+                Time Out
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <section className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-soft backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Quick Context</p>
+              <h2 className="mt-2 text-2xl font-black text-ink-900">{selectedProgramLabel}</h2>
+            </div>
+            <div className="rounded-2xl bg-ink-50 px-4 py-2 text-sm font-medium text-ink-700">
+              {form.date}
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            {logs.slice(0, 5).map((log) => (
+              <div key={log.id} className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="font-semibold text-ink-900">{log.date}</div>
+                    <div className="text-sm text-slate-500">{log.time_in ?? 'No time in'} to {log.time_out ?? 'No time out'}</div>
+                  </div>
+                  <div className="text-right text-sm text-slate-600">
+                    <div>{Number(log.total_hours).toFixed(2)} hrs</div>
+                    <div>{log.approval_status}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {logs.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
+                No attendance logs yet.
+              </div>
+            ) : null}
+          </div>
+        </section>
+      </section>
+    </div>
+  );
+}

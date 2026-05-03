@@ -27,7 +27,7 @@ class AuthController extends Controller
         $token = $user->createToken('trackwise')->plainTextToken;
 
         return response()->json([
-            'user' => $user->load(['role', 'organization']),
+            'user' => $user->load(['role', 'organization', 'userPrograms.program']),
             'token' => $token,
         ], 201);
     }
@@ -43,14 +43,14 @@ class AuthController extends Controller
         $token = $user->createToken('trackwise')->plainTextToken;
 
         return response()->json([
-            'user' => $user->load(['role', 'organization']),
+            'user' => $user->load(['role', 'organization', 'userPrograms.program']),
             'token' => $token,
         ]);
     }
 
     public function me(): JsonResponse
     {
-        return response()->json(request()->user()->load(['role', 'organization']));
+        return response()->json(request()->user()->load(['role', 'organization', 'userPrograms.program']));
     }
 
     public function logout(): JsonResponse
