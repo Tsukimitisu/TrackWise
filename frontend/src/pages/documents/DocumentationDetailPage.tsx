@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../auth/AuthContext';
-import AppShell from '../../components/AppShell';
 
 interface DocumentationFile {
   id: number;
@@ -80,12 +79,11 @@ const DocumentationDetailPage = () => {
     }
   };
 
-  if (loading) return <AppShell><div className="text-center py-8">Loading...</div></AppShell>;
-  if (!file) return <AppShell><div className="text-center py-8 text-red-600">File not found</div></AppShell>;
+  if (loading) return <div className="text-center py-8">Loading...</div>;
+  if (!file) return <div className="text-center py-8 text-red-600">File not found</div>;
 
   return (
-    <AppShell>
-      <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Documentation File</h1>
           <button
@@ -223,8 +221,7 @@ const DocumentationDetailPage = () => {
           )}
         </div>
       </div>
-    </AppShell>
-  );
+    );
 };
 
 export default DocumentationDetailPage;

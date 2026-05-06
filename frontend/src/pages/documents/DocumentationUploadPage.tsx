@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../auth/AuthContext';
-import AppShell from '../../components/AppShell';
 
 interface UserProgram {
   id: number;
@@ -47,12 +46,14 @@ const DocumentationUploadPage = () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/assignments`);
       const programs = response.data.data || response.data;
-      setUserPrograms(programs);
-      if (programs.length > 0) {
-        setFormData(prev => ({ ...prev, user_program_id: programs[0].id }));
+      const programArray = Array.isArray(programs) ? programs : [];
+      setUserPrograms(programArray);
+      if (programArray.length > 0) {
+        setFormData(prev => ({ ...prev, user_program_id: programArray[0].id }));
       }
     } catch (error) {
       console.error('Error fetching programs:', error);
+      setUserPrograms([]);
     }
   };
 
@@ -138,11 +139,10 @@ const DocumentationUploadPage = () => {
   };
 
   return (
-    <AppShell>
-      <div className="max-w-2xl mx-auto p-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Upload Documentation</h1>
+    <div className="max-w-2xl mx-auto p-6">
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Upload Documentation</h1>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6">
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Program/Assignment</label>
             <select
@@ -296,8 +296,7 @@ const DocumentationUploadPage = () => {
           </div>
         </form>
       </div>
-    </AppShell>
-  );
+    );
 };
 
 export default DocumentationUploadPage;
