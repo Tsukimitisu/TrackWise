@@ -36,7 +36,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/daily-reports/{dailyReport}/reject', [DailyReportController::class, 'reject']);
     Route::post('/daily-reports/{dailyReport}/request-revision', [DailyReportController::class, 'requestRevision']);
     
+    // Weekly Reports with approval workflow and auto-generation
     Route::apiResource('weekly-reports', WeeklyReportController::class);
+    Route::post('/weekly-reports/generate-draft', [WeeklyReportController::class, 'generateDraft']);
+    Route::post('/weekly-reports/{weeklyReport}/submit', [WeeklyReportController::class, 'submit']);
+    Route::post('/weekly-reports/{weeklyReport}/approve', [WeeklyReportController::class, 'approve']);
+    Route::post('/weekly-reports/{weeklyReport}/reject', [WeeklyReportController::class, 'reject']);
+    Route::post('/weekly-reports/{weeklyReport}/request-revision', [WeeklyReportController::class, 'requestRevision']);
     Route::apiResource('documents', DocumentController::class);
     Route::apiResource('evaluations', EvaluationController::class);
 
