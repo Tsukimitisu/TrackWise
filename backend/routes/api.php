@@ -28,7 +28,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/attendance-logs/clock-in', [AttendanceController::class, 'clockIn']);
     Route::post('/attendance-logs/clock-out', [AttendanceController::class, 'clockOut']);
     Route::apiResource('attendance-logs', AttendanceController::class);
+    
+    // Daily Reports with approval workflow
     Route::apiResource('daily-reports', DailyReportController::class);
+    Route::post('/daily-reports/{dailyReport}/submit', [DailyReportController::class, 'submit']);
+    Route::post('/daily-reports/{dailyReport}/approve', [DailyReportController::class, 'approve']);
+    Route::post('/daily-reports/{dailyReport}/reject', [DailyReportController::class, 'reject']);
+    Route::post('/daily-reports/{dailyReport}/request-revision', [DailyReportController::class, 'requestRevision']);
+    
     Route::apiResource('weekly-reports', WeeklyReportController::class);
     Route::apiResource('documents', DocumentController::class);
     Route::apiResource('evaluations', EvaluationController::class);

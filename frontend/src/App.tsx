@@ -10,6 +10,9 @@ import LandingPage from './pages/public/LandingPage';
 import LoginPage from './pages/public/LoginPage';
 import RegisterPage from './pages/public/RegisterPage';
 import TimeInOutPage from './pages/attendance/TimeInOutPage';
+import DailyReportPage from './pages/reports/DailyReportPage';
+import DailyReportDetailPage from './pages/reports/DailyReportDetailPage';
+import DailyReportFormPage from './pages/reports/DailyReportFormPage';
 
 const modulePage = (title: string, description: string) => <ModulePage title={title} description={description} />;
 
@@ -31,6 +34,10 @@ export default function App() {
             <Route path="assignments" element={modulePage('Assignments', 'Assign users to programs, supervisors, and coordinators.')} />
             <Route path="attendance" element={<AttendancePage />} />
             <Route path="time-in-out" element={<TimeInOutPage />} />
+            <Route path="reports/daily" element={<DailyReportPage />} />
+            <Route path="reports/daily/create" element={<DailyReportFormPage />} />
+            <Route path="reports/daily/:id" element={<DailyReportDetailPage />} />
+            <Route path="reports/daily/:id/edit" element={<DailyReportFormPage />} />
             <Route path="daily-reports" element={modulePage('Daily Reports', 'Create, submit, and review daily work reports.')} />
             <Route path="weekly-reports" element={modulePage('Weekly Reports', 'Create, submit, and review weekly narrative reports.')} />
             <Route path="documents" element={modulePage('Documents', 'Upload, preview, and review supporting documents.')} />
