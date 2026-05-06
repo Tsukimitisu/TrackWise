@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\ApprovalController;
 use App\Http\Controllers\Api\DailyReportController;
 use App\Http\Controllers\Api\DocumentController;
+use App\Http\Controllers\Api\DocumentationFileController;
 use App\Http\Controllers\Api\EvaluationController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrganizationController;
@@ -43,6 +44,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/weekly-reports/{weeklyReport}/approve', [WeeklyReportController::class, 'approve']);
     Route::post('/weekly-reports/{weeklyReport}/reject', [WeeklyReportController::class, 'reject']);
     Route::post('/weekly-reports/{weeklyReport}/request-revision', [WeeklyReportController::class, 'requestRevision']);
+    
+    // Documentation Files (photos, camera, documents)
+    Route::apiResource('documentation-files', DocumentationFileController::class);
+    
     Route::apiResource('documents', DocumentController::class);
     Route::apiResource('evaluations', EvaluationController::class);
 

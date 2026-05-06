@@ -16,6 +16,9 @@ import DailyReportFormPage from './pages/reports/DailyReportFormPage';
 import WeeklyReportPage from './pages/reports/WeeklyReportPage';
 import WeeklyReportDetailPage from './pages/reports/WeeklyReportDetailPage';
 import WeeklyReportFormPage from './pages/reports/WeeklyReportFormPage';
+import DocumentationPage from './pages/documents/DocumentationPage';
+import DocumentationUploadPage from './pages/documents/DocumentationUploadPage';
+import DocumentationDetailPage from './pages/documents/DocumentationDetailPage';
 
 const modulePage = (title: string, description: string) => <ModulePage title={title} description={description} />;
 
@@ -45,9 +48,11 @@ export default function App() {
             <Route path="reports/weekly/create" element={<WeeklyReportFormPage />} />
             <Route path="reports/weekly/:id" element={<WeeklyReportDetailPage />} />
             <Route path="reports/weekly/:id/edit" element={<WeeklyReportFormPage />} />
+            <Route path="documents" element={<DocumentationPage />} />
+            <Route path="documents/upload" element={<DocumentationUploadPage />} />
+            <Route path="documents/:id" element={<DocumentationDetailPage />} />
             <Route path="daily-reports" element={modulePage('Daily Reports', 'Create, submit, and review daily work reports.')} />
             <Route path="weekly-reports" element={modulePage('Weekly Reports', 'Create, submit, and review weekly narrative reports.')} />
-            <Route path="documents" element={modulePage('Documents', 'Upload, preview, and review supporting documents.')} />
             <Route path="evaluations" element={modulePage('Evaluations', 'Score attendance, performance, communication, and professionalism.')} />
             <Route path="reports" element={modulePage('Reports', 'Printable DTR and export-ready summaries.')} />
             <Route path="settings" element={modulePage('System Settings', 'Manage organization-level and global settings.')} />
