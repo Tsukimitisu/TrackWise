@@ -19,6 +19,9 @@ import WeeklyReportFormPage from './pages/reports/WeeklyReportFormPage';
 import DocumentationPage from './pages/documents/DocumentationPage';
 import DocumentationUploadPage from './pages/documents/DocumentationUploadPage';
 import DocumentationDetailPage from './pages/documents/DocumentationDetailPage';
+import EvaluationPage from './pages/evaluations/EvaluationPage';
+import EvaluationFormPage from './pages/evaluations/EvaluationFormPage';
+import EvaluationDetailPage from './pages/evaluations/EvaluationDetailPage';
 
 const modulePage = (title: string, description: string) => <ModulePage title={title} description={description} />;
 
@@ -51,9 +54,12 @@ export default function App() {
             <Route path="documents" element={<DocumentationPage />} />
             <Route path="documents/upload" element={<DocumentationUploadPage />} />
             <Route path="documents/:id" element={<DocumentationDetailPage />} />
+            <Route path="evaluations" element={<EvaluationPage />} />
+            <Route path="evaluations/create" element={<EvaluationFormPage />} />
+            <Route path="evaluations/:id" element={<EvaluationDetailPage />} />
+            <Route path="evaluations/:id/edit" element={<EvaluationFormPage />} />
             <Route path="daily-reports" element={modulePage('Daily Reports', 'Create, submit, and review daily work reports.')} />
             <Route path="weekly-reports" element={modulePage('Weekly Reports', 'Create, submit, and review weekly narrative reports.')} />
-            <Route path="evaluations" element={modulePage('Evaluations', 'Score attendance, performance, communication, and professionalism.')} />
             <Route path="reports" element={modulePage('Reports', 'Printable DTR and export-ready summaries.')} />
             <Route path="settings" element={modulePage('System Settings', 'Manage organization-level and global settings.')} />
             <Route path="progress" element={modulePage('Progress Tracking', 'Monitor completed hours and remaining requirements.')} />

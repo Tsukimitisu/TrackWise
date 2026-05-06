@@ -1,0 +1,208 @@
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../../auth/AuthContext';
+
+interface UserProgram {
+  id: number;
+  user_id: number;
+  program_id: number;
+  user: { first_name: string; last_name: string };
+  program: { name: string };
+}
+
+interface FormData {
+  user_program_id: number;
+  attendance_score: number;
+  performance_score: number;
+  communication_score: number;
+  technical_score: number;
+  professionalism_score: number;
+  comments: string;
+}
+
+const EvaluationFormPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const [userPrograms, setUserPrograms] = useState<UserProgram[]>([]);
+  const [formData, setFormData] = useState<FormData>({
+    user_program_id: 0,
+    attendance_score: 0,
+    performance_score: 0,
+    communication_score: 0,
+    technical_score: 0,
+    professionalism_score: 0,
+    comments: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchUserPrograms();
+    if (id) {
+      fetchEvaluation();
+    }
+  }, [id]);
+
+  const fetchUserPrograms = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/assignments`);
+      const programs = response.data.data || response.data;
+      const programArray = Array.isArray(programs) ? programs : [];
+      setUserPrograms(programArray);
+      if (programArray.length > 0 && !id) {
+        setFormData(prev => ({ ...prev, user_program_id: programArray[0].id }));
+      }
+    } catch (error) {
+      console.error('Error fetching programs:', error);
+    }
+  };
+
+  const fetchEvaluation = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/evaluations/${id}`);
+      const eval_data = response.data;
+      setFormData({
+        user_program_id: eval_data.user_program_id,
+        attendance_score: eval_data.attendance_score || 0,
+        performance_score: eval_data.performance_score || 0,
+        communication_score: eval_data.communication_score || 0,
+        technical_score: eval_data.technical_score || 0,
+        professionalism_score: eval_data.professionalism_score || 0,
+        comments: eval_data.comments || '',
+      });
+    } catch (error) {
+      console.error('Error fetching evaluation:', error);
+      navigate('/app/evaluations');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name.includes('score') ? parseInt(value) || 0 : value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.user_program_id) {
+      alert('Please select a student/program');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      if (id) {
+        await axios.put(`${import.meta.env.VITE_API_BASE_URL}/evaluations/${id}`, formData);
+      } else {
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/evaluations`, formData);
+      }
+      navigate('/app/evaluations');
+    } catch (error) {
+      console.error('Error saving evaluation:', error);
+      alert('Error saving evaluation. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) return <div className="text-center py-8">Loading...</div>;
+
+  const ScoreInput = ({ label, name, value }: { label: string; name: string; value: number }) => (
+    <div className="flex items-center gap-4">
+      <label className="w-32 text-sm font-medium text-gray-700">{label}</label>
+      <div className="flex gap-2">
+        {[0, 1, 2, 3, 4, 5].map(score => (
+          <button
+            key={score}
+            type="button"
+            onClick={() => setFormData(prev => ({ ...prev, [name]: score }))}
+            className={`w-10 h-10 rounded font-semibold transition ${
+              value === score
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            {score}
+          </button>
+        ))}
+      </div>
+      <span className="text-sm text-gray-600 font-semibold">{value}/5</span>
+    </div>
+  );
+
+  return (
+    <div className="max-w-2xl mx-auto p-6">
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">
+        {id ? 'Edit' : 'Create'} Evaluation
+      </h1>
+
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6">
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Student/Program</label>
+          <select
+            name="user_program_id"
+            value={formData.user_program_id}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+            disabled={!!id}
+          >
+            <option value="">Select a student</option>
+            {userPrograms.map(up => (
+              <option key={up.id} value={up.id}>
+                {up.user.first_name} {up.user.last_name} - {up.program.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-4 mb-6 bg-gray-50 p-4 rounded">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Scoring (1-5)</h2>
+          <ScoreInput label="Attendance" name="attendance_score" value={formData.attendance_score} />
+          <ScoreInput label="Performance" name="performance_score" value={formData.performance_score} />
+          <ScoreInput label="Communication" name="communication_score" value={formData.communication_score} />
+          <ScoreInput label="Technical" name="technical_score" value={formData.technical_score} />
+          <ScoreInput label="Professionalism" name="professionalism_score" value={formData.professionalism_score} />
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Comments</label>
+          <textarea
+            name="comments"
+            value={formData.comments}
+            onChange={handleChange}
+            placeholder="Add detailed feedback and comments..."
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows={5}
+          />
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="flex-1 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+          >
+            {submitting ? 'Saving...' : 'Save Evaluation'}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/app/evaluations')}
+            className="flex-1 px-6 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default EvaluationFormPage;

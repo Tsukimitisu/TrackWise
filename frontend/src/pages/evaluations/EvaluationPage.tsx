@@ -1,0 +1,149 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../../auth/AuthContext';
+
+interface Evaluation {
+  id: number;
+  user_program_id: number;
+  supervisor_id: number;
+  attendance_score?: number;
+  performance_score?: number;
+  communication_score?: number;
+  technical_score?: number;
+  professionalism_score?: number;
+  comments?: string;
+  created_at: string;
+  userProgram?: {
+    user: { first_name: string; last_name: string };
+    program: { name: string };
+  };
+  supervisor?: {
+    first_name: string;
+    last_name: string;
+  };
+}
+
+const EvaluationPage = () => {
+  const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchEvaluations();
+  }, []);
+
+  const fetchEvaluations = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/evaluations`);
+      const data = response.data.data || response.data;
+      setEvaluations(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching evaluations:', error);
+      setEvaluations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getAverageScore = (evaluation: Evaluation): number => {
+    const scores = [
+      evaluation.attendance_score,
+      evaluation.performance_score,
+      evaluation.communication_score,
+      evaluation.technical_score,
+      evaluation.professionalism_score,
+    ];
+    const validScores = scores.filter(s => s !== undefined && s !== null);
+    return validScores.length > 0 ? validScores.reduce((a, b) => a + b, 0) / validScores.length : 0;
+  };
+
+  const getScoreColor = (score?: number): string => {
+    if (!score) return 'bg-gray-100 text-gray-600';
+    if (score >= 4.5) return 'bg-green-100 text-green-700';
+    if (score >= 3.5) return 'bg-blue-100 text-blue-700';
+    if (score >= 2.5) return 'bg-yellow-100 text-yellow-700';
+    return 'bg-red-100 text-red-700';
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">Evaluations</h1>
+        <button
+          onClick={() => navigate('/app/evaluations/create')}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          + New Evaluation
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-8">Loading...</div>
+      ) : evaluations.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">No evaluations found.</div>
+      ) : (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Student</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Program</th>
+                <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Attendance</th>
+                <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Performance</th>
+                <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Communication</th>
+                <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Technical</th>
+                <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Professional</th>
+                <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Average</th>
+                <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {evaluations.map(eval => {
+                const avg = getAverageScore(eval);
+                return (
+                  <tr key={eval.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {eval.userProgram?.user.first_name} {eval.userProgram?.user.last_name}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{eval.userProgram?.program.name}</td>
+                    <td className={`px-6 py-4 text-center text-sm font-semibold rounded ${getScoreColor(eval.attendance_score)}`}>
+                      {eval.attendance_score ? `${eval.attendance_score}/5` : '-'}
+                    </td>
+                    <td className={`px-6 py-4 text-center text-sm font-semibold rounded ${getScoreColor(eval.performance_score)}`}>
+                      {eval.performance_score ? `${eval.performance_score}/5` : '-'}
+                    </td>
+                    <td className={`px-6 py-4 text-center text-sm font-semibold rounded ${getScoreColor(eval.communication_score)}`}>
+                      {eval.communication_score ? `${eval.communication_score}/5` : '-'}
+                    </td>
+                    <td className={`px-6 py-4 text-center text-sm font-semibold rounded ${getScoreColor(eval.technical_score)}`}>
+                      {eval.technical_score ? `${eval.technical_score}/5` : '-'}
+                    </td>
+                    <td className={`px-6 py-4 text-center text-sm font-semibold rounded ${getScoreColor(eval.professionalism_score)}`}>
+                      {eval.professionalism_score ? `${eval.professionalism_score}/5` : '-'}
+                    </td>
+                    <td className={`px-6 py-4 text-center text-sm font-bold rounded ${getScoreColor(avg)}`}>
+                      {avg > 0 ? avg.toFixed(1) : '-'}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() => navigate(`/app/evaluations/${eval.id}`)}
+                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                      >
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default EvaluationPage;

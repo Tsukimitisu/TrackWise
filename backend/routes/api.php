@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::apiResource('documents', DocumentController::class);
     Route::apiResource('evaluations', EvaluationController::class);
+    Route::get('/evaluations/{evaluation}/average-score', [EvaluationController::class, 'getAverageScore']);
 
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
