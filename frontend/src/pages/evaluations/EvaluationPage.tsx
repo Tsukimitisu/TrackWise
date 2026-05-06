@@ -101,35 +101,35 @@ const EvaluationPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {evaluations.map(eval => {
-                const avg = getAverageScore(eval);
+              {evaluations.map(evaluation => {
+                const avg = getAverageScore(evaluation);
                 return (
-                  <tr key={eval.id} className="hover:bg-gray-50">
+                  <tr key={evaluation.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      {eval.userProgram?.user.first_name} {eval.userProgram?.user.last_name}
+                      {evaluation.userProgram?.user.first_name} {evaluation.userProgram?.user.last_name}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{eval.userProgram?.program.name}</td>
-                    <td className={`px-6 py-4 text-center text-sm font-semibold rounded ${getScoreColor(eval.attendance_score)}`}>
-                      {eval.attendance_score ? `${eval.attendance_score}/5` : '-'}
+                    <td className="px-6 py-4 text-sm text-gray-600">{evaluation.userProgram?.program.name}</td>
+                    <td className={`px-6 py-4 text-center text-sm font-semibold rounded ${getScoreColor(evaluation.attendance_score)}`}>
+                      {evaluation.attendance_score ? `${evaluation.attendance_score}/5` : '-'}
                     </td>
-                    <td className={`px-6 py-4 text-center text-sm font-semibold rounded ${getScoreColor(eval.performance_score)}`}>
-                      {eval.performance_score ? `${eval.performance_score}/5` : '-'}
+                    <td className={`px-6 py-4 text-center text-sm font-semibold rounded ${getScoreColor(evaluation.performance_score)}`}>
+                      {evaluation.performance_score ? `${evaluation.performance_score}/5` : '-'}
                     </td>
-                    <td className={`px-6 py-4 text-center text-sm font-semibold rounded ${getScoreColor(eval.communication_score)}`}>
-                      {eval.communication_score ? `${eval.communication_score}/5` : '-'}
+                    <td className={`px-6 py-4 text-center text-sm font-semibold rounded ${getScoreColor(evaluation.communication_score)}`}>
+                      {evaluation.communication_score ? `${evaluation.communication_score}/5` : '-'}
                     </td>
-                    <td className={`px-6 py-4 text-center text-sm font-semibold rounded ${getScoreColor(eval.technical_score)}`}>
-                      {eval.technical_score ? `${eval.technical_score}/5` : '-'}
+                    <td className={`px-6 py-4 text-center text-sm font-semibold rounded ${getScoreColor(evaluation.technical_score)}`}>
+                      {evaluation.technical_score ? `${evaluation.technical_score}/5` : '-'}
                     </td>
-                    <td className={`px-6 py-4 text-center text-sm font-semibold rounded ${getScoreColor(eval.professionalism_score)}`}>
-                      {eval.professionalism_score ? `${eval.professionalism_score}/5` : '-'}
+                    <td className={`px-6 py-4 text-center text-sm font-semibold rounded ${getScoreColor(evaluation.professionalism_score)}`}>
+                      {evaluation.professionalism_score ? `${evaluation.professionalism_score}/5` : '-'}
                     </td>
                     <td className={`px-6 py-4 text-center text-sm font-bold rounded ${getScoreColor(avg)}`}>
                       {avg > 0 ? avg.toFixed(1) : '-'}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <button
-                        onClick={() => navigate(`/app/evaluations/${eval.id}`)}
+                        onClick={() => navigate(`/app/evaluations/${evaluation.id}`)}
                         className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
                       >
                         View

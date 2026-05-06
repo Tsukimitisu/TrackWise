@@ -63,15 +63,15 @@ const EvaluationFormPage = () => {
     try {
       setLoading(true);
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/evaluations/${id}`);
-      const eval_data = response.data;
+      const evaluation_data = response.data;
       setFormData({
-        user_program_id: eval_data.user_program_id,
-        attendance_score: eval_data.attendance_score || 0,
-        performance_score: eval_data.performance_score || 0,
-        communication_score: eval_data.communication_score || 0,
-        technical_score: eval_data.technical_score || 0,
-        professionalism_score: eval_data.professionalism_score || 0,
-        comments: eval_data.comments || '',
+        user_program_id: evaluation_data.user_program_id,
+        attendance_score: evaluation_data.attendance_score || 0,
+        performance_score: evaluation_data.performance_score || 0,
+        communication_score: evaluation_data.communication_score || 0,
+        technical_score: evaluation_data.technical_score || 0,
+        professionalism_score: evaluation_data.professionalism_score || 0,
+        comments: evaluation_data.comments || '',
       });
     } catch (error) {
       console.error('Error fetching evaluation:', error);

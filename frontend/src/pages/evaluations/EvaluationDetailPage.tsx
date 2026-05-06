@@ -41,16 +41,16 @@ const EvaluationDetailPage = () => {
     try {
       setLoading(true);
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/evaluations/${id}`);
-      const eval_data = response.data;
-      setEvaluation(eval_data);
+      const evaluation_data = response.data;
+      setEvaluation(evaluation_data);
 
       // Calculate average
       const scores = [
-        eval_data.attendance_score,
-        eval_data.performance_score,
-        eval_data.communication_score,
-        eval_data.technical_score,
-        eval_data.professionalism_score,
+        evaluation_data.attendance_score,
+        evaluation_data.performance_score,
+        evaluation_data.communication_score,
+        evaluation_data.technical_score,
+        evaluation_data.professionalism_score,
       ];
       const validScores = scores.filter(s => s !== null && s !== undefined);
       const avg = validScores.length > 0 ? validScores.reduce((a, b) => a + b, 0) / validScores.length : 0;
