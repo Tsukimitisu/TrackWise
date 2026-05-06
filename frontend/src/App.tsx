@@ -22,6 +22,9 @@ import DocumentationDetailPage from './pages/documents/DocumentationDetailPage';
 import EvaluationPage from './pages/evaluations/EvaluationPage';
 import EvaluationFormPage from './pages/evaluations/EvaluationFormPage';
 import EvaluationDetailPage from './pages/evaluations/EvaluationDetailPage';
+import OrganizationPage from './pages/organizations/OrganizationPage';
+import OrganizationFormPage from './pages/organizations/OrganizationFormPage';
+import OrganizationDetailPage from './pages/organizations/OrganizationDetailPage';
 
 const modulePage = (title: string, description: string) => <ModulePage title={title} description={description} />;
 
@@ -37,7 +40,10 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/app" element={<AppShell />}>
             <Route index element={<DashboardPage />} />
-            <Route path="organizations" element={modulePage('Organizations', 'Create, update, activate, and deactivate organizations.')} />
+            <Route path="organizations" element={<OrganizationPage />} />
+            <Route path="organizations/create" element={<OrganizationFormPage />} />
+            <Route path="organizations/:id" element={<OrganizationDetailPage />} />
+            <Route path="organizations/:id/edit" element={<OrganizationFormPage />} />
             <Route path="users" element={modulePage('Users', 'Manage role-based user accounts and assignments.')} />
             <Route path="programs" element={modulePage('Programs', 'Configure tracker programs and required hours.')} />
             <Route path="assignments" element={modulePage('Assignments', 'Assign users to programs, supervisors, and coordinators.')} />
