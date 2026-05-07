@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\ApprovalController;
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\DailyReportController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\DocumentationFileController;
@@ -106,4 +107,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Settings - admin/coordinator only
     Route::get('/settings', [SystemSettingsController::class, 'index']);
     Route::middleware('role:admin,coordinator')->put('/settings', [SystemSettingsController::class, 'update']);
+
+    // Analytics
+    Route::get('/analytics/dashboard', [AnalyticsController::class, 'dashboard']);
+    Route::get('/analytics/reports', [AnalyticsController::class, 'reportStats']);
+    Route::get('/analytics/assignments', [AnalyticsController::class, 'assignmentStats']);
 });

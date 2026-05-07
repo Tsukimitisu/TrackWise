@@ -3,6 +3,7 @@ import { AuthProvider } from './auth/AuthContext';
 import ProtectedRoute from './auth/ProtectedRoute';
 import AppShell from './components/AppShell';
 import AttendancePage from './pages/attendance/AttendancePage';
+import AnalyticsDashboardPage from './pages/analytics/AnalyticsDashboardPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import ModulePage from './pages/ModulePage';
 import ForgotPasswordPage from './pages/public/ForgotPasswordPage';
@@ -94,6 +95,7 @@ export default function App() {
             <Route path="weekly-reports" element={modulePage('Weekly Reports', 'Create, submit, and review weekly narrative reports.')} />
             <Route path="reports" element={modulePage('Reports', 'Printable DTR and export-ready summaries.')} />
             <Route path="settings" element={<SystemSettingsPage />} />
+            <Route path="analytics" element={<AnalyticsDashboardPage />} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="progress/:id" element={<ProgressDetailPage />} />
             <Route path="assigned-trainees" element={<AssignedTraineesPage />} />
