@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
+import { hasRole } from '../../utils/roleHelper';
 
 interface FormData {
   user_id: number | '';
@@ -17,12 +19,20 @@ interface FormDataExtended extends FormData {
 
 const AssignmentFormPage = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!hasRole(user, ['admin', 'coordinator'])) {
+      navigate('/app/assignments');
+    }
+  }, [user, navigate]);
+
   const [formData, setFormData] = useState<FormDataExtended>({ user_id: '', program_id: '', supervisor_id: '', coordinator_id: '', start_date: '', end_date: '', required_hours: 0 });
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
   const [programs, setPrograms] = useState<any[]>([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchLookups();

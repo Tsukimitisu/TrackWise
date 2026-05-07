@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
+import { hasRole } from '../../utils/roleHelper';
 
 interface FormData {
   name: string;
@@ -16,6 +18,13 @@ const UserFormPage = () => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!hasRole(user, ['admin', 'coordinator'])) {
+      navigate('/app/users');
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     if (id) fetchUser();

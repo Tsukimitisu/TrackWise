@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
+import { hasRole } from '../../utils/roleHelper';
 
 interface Organization {
   id: number;
@@ -18,6 +20,8 @@ const OrganizationPage = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const canManage = hasRole(user, ['admin', 'coordinator']);
 
   useEffect(() => {
     fetchOrganizations();
@@ -41,12 +45,14 @@ const OrganizationPage = () => {
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Organizations</h1>
-        <button
-          onClick={() => navigate('/app/organizations/create')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          + New Organization
-        </button>
+        {canManage && (
+          <button
+            onClick={() => navigate('/app/organizations/create')}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            + New Organization
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -85,12 +91,14 @@ const OrganizationPage = () => {
                     >
                       View
                     </button>
-                    <button
-                      onClick={() => navigate(`/app/organizations/${organization.id}/edit`)}
-                      className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
-                    >
-                      Edit
-                    </button>
+                    {canManage && (
+                      <button
+                        onClick={() => navigate(`/app/organizations/${organization.id}/edit`)}
+                        className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
+                      >
+                        Edit
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
+import { hasRole } from '../../utils/roleHelper';
 
 interface User {
   id: number;
@@ -15,6 +17,8 @@ const UsersPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const canManage = hasRole(user, ['admin', 'coordinator']);
 
   useEffect(() => {
     fetchUsers();
@@ -38,12 +42,14 @@ const UsersPage = () => {
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Users</h1>
-        <button
-          onClick={() => navigate('/app/users/create')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          + New User
-        </button>
+        {canManage && (
+          <button
+            onClick={() => navigate('/app/users/create')}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            + New User
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -76,12 +82,14 @@ const UsersPage = () => {
                     >
                       View
                     </button>
-                    <button
-                      onClick={() => navigate(`/app/users/${u.id}/edit`)}
-                      className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
-                    >
-                      Edit
-                    </button>
+                    {canManage && (
+                      <button
+                        onClick={() => navigate(`/app/users/${u.id}/edit`)}
+                        className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
+                      >
+                        Edit
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

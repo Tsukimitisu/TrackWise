@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
+import { hasRole } from '../../utils/roleHelper';
 
 interface FormData {
   name: string;
@@ -11,6 +13,15 @@ interface FormData {
 
 const ProgramFormPage = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!hasRole(user, ['admin', 'coordinator'])) {
+      navigate('/app/programs');
+    }
+  }, [user, navigate]);
+
   const [formData, setFormData] = useState<FormData>({
     name: '',
     required_hours: 0,
@@ -24,7 +35,6 @@ const ProgramFormPage = () => {
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchOrganizations();

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
+import { hasRole } from '../../utils/roleHelper';
 
 interface Assignment {
   id: number;
@@ -17,6 +19,8 @@ const AssignmentsPage = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const canManage = hasRole(user, ['admin', 'coordinator']);
 
   useEffect(() => {
     fetchAssignments();
@@ -40,7 +44,9 @@ const AssignmentsPage = () => {
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Assignments</h1>
-        <button onClick={() => navigate('/app/assignments/create')} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">+ New Assignment</button>
+        {canManage && (
+          <button onClick={() => navigate('/app/assignments/create')} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">+ New Assignment</button>
+        )}
       </div>
 
       {loading ? (
@@ -70,7 +76,9 @@ const AssignmentsPage = () => {
                   <td className="px-6 py-4 text-sm text-gray-600">{a.start_date ? `${a.start_date}${a.end_date ? ' — ' + a.end_date : ''}` : '-'}</td>
                   <td className="px-6 py-4 text-center space-x-2">
                     <button onClick={() => navigate(`/app/assignments/${a.id}`)} className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">View</button>
-                    <button onClick={() => navigate(`/app/assignments/${a.id}/edit`)} className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700">Edit</button>
+                    {canManage && (
+                      <button onClick={() => navigate(`/app/assignments/${a.id}/edit`)} className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700">Edit</button>
+                    )}
                   </td>
                 </tr>
               ))}
