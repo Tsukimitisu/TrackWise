@@ -28,6 +28,9 @@ import OrganizationDetailPage from './pages/organizations/OrganizationDetailPage
 import ProgramsPage from './pages/programs/ProgramsPage';
 import ProgramFormPage from './pages/programs/ProgramFormPage';
 import ProgramDetailPage from './pages/programs/ProgramDetailPage';
+import UsersPage from './pages/users/UsersPage';
+import UserFormPage from './pages/users/UserFormPage';
+import UserDetailPage from './pages/users/UserDetailPage';
 import ProgressPage from './pages/progress/ProgressPage';
 import ProgressDetailPage from './pages/progress/ProgressDetailPage';
 import PrintableReportsPage from './pages/printables/PrintableReportsPage';
@@ -53,7 +56,10 @@ export default function App() {
             <Route path="organizations/create" element={<OrganizationFormPage />} />
             <Route path="organizations/:id" element={<OrganizationDetailPage />} />
             <Route path="organizations/:id/edit" element={<OrganizationFormPage />} />
-            <Route path="users" element={modulePage('Users', 'Manage role-based user accounts and assignments.')} />
+            <Route path="users" element={<UsersPage />} />
+            <Route path="users/create" element={<UserFormPage />} />
+            <Route path="users/:id" element={<UserDetailPage />} />
+            <Route path="users/:id/edit" element={<UserFormPage />} />
             <Route path="programs" element={<ProgramsPage />} />
             <Route path="programs/create" element={<ProgramFormPage />} />
             <Route path="programs/:id" element={<ProgramDetailPage />} />
