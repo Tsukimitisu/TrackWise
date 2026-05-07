@@ -16,15 +16,28 @@ class DailyReportRequest extends FormRequest
     {
         return [
             'user_program_id' => ['required', 'integer', 'exists:user_programs,id'],
-            'report_date' => ['required', 'date'],
-            'tasks_done' => ['required', 'string'],
-            'tools_used' => ['nullable', 'string'],
-            'problems_encountered' => ['nullable', 'string'],
-            'learnings' => ['nullable', 'string'],
+            'report_date' => ['required', 'date', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'tasks_done' => ['required', 'string', 'min:10', 'max:1000'],
+            'tools_used' => ['nullable', 'string', 'max:500'],
+            'problems_encountered' => ['nullable', 'string', 'max:500'],
+            'learnings' => ['nullable', 'string', 'max:500'],
+            'hours_worked' => ['nullable', 'numeric', 'min:0', 'max:24'],
             'status' => ['required', 'string', Rule::in(['draft', 'submitted', 'approved', 'rejected', 'needs_revision'])],
-            'submitted_at' => ['nullable', 'date'],
+            'submitted_at' => ['nullable', 'date', 'date_format:Y-m-d H:i:s'],
             'reviewed_by' => ['nullable', 'integer', 'exists:users,id'],
-            'review_comment' => ['nullable', 'string'],
+            'review_comment' => ['nullable', 'string', 'max:1000'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'tasks_done.required' => 'Tasks done field is required and must be at least 10 characters',
+            'tasks_done.min' => 'Please provide more detail about your tasks (minimum 10 characters)',
+            'report_date.before_or_equal' => 'Report date cannot be in the future',
+            'hours_worked.max' => 'Hours worked cannot exceed 24',
+            'hours_worked.min' => 'Hours worked must be 0 or greater',
         ];
     }
 }
+
