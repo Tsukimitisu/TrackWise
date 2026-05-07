@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\OrganizationController;
 use App\Http\Controllers\Api\ProgramController;
 use App\Http\Controllers\Api\AssignmentController;
 use App\Http\Controllers\Api\WeeklyReportController;
+use App\Http\Controllers\Api\SystemSettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
@@ -56,4 +57,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
 
     Route::post('/approvals/{type}/{id}', [ApprovalController::class, 'review']);
+    Route::get('/settings', [SystemSettingsController::class, 'index']);
+    Route::put('/settings', [SystemSettingsController::class, 'update']);
 });
