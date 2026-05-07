@@ -17,11 +17,17 @@ const ProgramFormPage = () => {
     description: '',
     status: 'active',
   });
+  const [organizationId, setOrganizationId] = useState<number | ''>('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [reportFrequency, setReportFrequency] = useState<string>('weekly');
+  const [organizations, setOrganizations] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    fetchOrganizations();
     if (id) fetchProgram();
   }, [id]);
 
@@ -36,11 +42,25 @@ const ProgramFormPage = () => {
         description: p.description || '',
         status: p.status || 'active',
       });
+      setOrganizationId(p.organization_id || '');
+      setStartDate(p.start_date || '');
+      setEndDate(p.end_date || '');
+      setReportFrequency(p.report_frequency || 'weekly');
     } catch (error) {
       console.error('Error fetching program:', error);
       navigate('/app/programs');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOrganizations = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/organizations`);
+      setOrganizations(res.data.data || res.data || []);
+    } catch (error) {
+      console.error('Error fetching organizations:', error);
+      setOrganizations([]);
     }
   };
 
@@ -58,11 +78,16 @@ const ProgramFormPage = () => {
 
     try {
       setSubmitting(true);
-      if (id) {
-        await axios.put(`${import.meta.env.VITE_API_BASE_URL}/programs/${id}`, formData);
-      } else {
-        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/programs`, formData);
-      }
+      const payload: any = {
+        ...formData,
+        organization_id: organizationId,
+        start_date: startDate || null,
+        end_date: endDate || null,
+        report_frequency: reportFrequency,
+      };
+
+      if (id) await axios.put(`${import.meta.env.VITE_API_BASE_URL}/programs/${id}`, payload);
+      else await axios.post(`${import.meta.env.VITE_API_BASE_URL}/programs`, payload);
       navigate('/app/programs');
     } catch (error) {
       console.error('Error saving program:', error);
@@ -99,6 +124,34 @@ const ProgramFormPage = () => {
             className="w-full px-3 py-2 border border-gray-300 rounded"
             required
           />
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Organization *</label>
+          <select name="organization_id" value={organizationId} onChange={(e) => setOrganizationId(e.target.value === '' ? '' : Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 rounded" required>
+            <option value="">Select organization</option>
+            {organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" />
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Report Frequency</label>
+          <select value={reportFrequency} onChange={(e) => setReportFrequency(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
         </div>
 
         <div className="mb-6">

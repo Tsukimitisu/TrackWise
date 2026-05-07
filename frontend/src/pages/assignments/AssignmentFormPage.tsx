@@ -11,9 +11,13 @@ interface FormData {
   end_date: string;
 }
 
+interface FormDataExtended extends FormData {
+  required_hours: number;
+}
+
 const AssignmentFormPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [formData, setFormData] = useState<FormData>({ user_id: '', program_id: '', supervisor_id: '', coordinator_id: '', start_date: '', end_date: '' });
+  const [formData, setFormData] = useState<FormDataExtended>({ user_id: '', program_id: '', supervisor_id: '', coordinator_id: '', start_date: '', end_date: '', required_hours: 0 });
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
@@ -50,6 +54,7 @@ const AssignmentFormPage = () => {
         coordinator_id: a.coordinator?.id || '',
         start_date: a.start_date || '',
         end_date: a.end_date || '',
+        required_hours: a.required_hours || 0,
       });
     } catch (error) {
       console.error('Error fetching assignment:', error);
@@ -61,7 +66,15 @@ const AssignmentFormPage = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: name.endsWith('_id') ? (value === '' ? '' : Number(value)) : value }));
+    const newVal: any = name.endsWith('_id') ? (value === '' ? '' : Number(value)) : value;
+    setFormData(prev => ({ ...prev, [name]: newVal }));
+
+    // If program changed, set required_hours from program
+    if (name === 'program_id') {
+      const pid = value === '' ? '' : Number(value);
+      const prog = programs.find(p => p.id === pid);
+      if (prog) setFormData(prev => ({ ...prev, required_hours: prog.required_hours || 0 }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
