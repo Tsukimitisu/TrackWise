@@ -29,6 +29,8 @@ import ProgressPage from './pages/progress/ProgressPage';
 import ProgressDetailPage from './pages/progress/ProgressDetailPage';
 import PrintableReportsPage from './pages/printables/PrintableReportsPage';
 import NotificationsPage from './pages/notifications/NotificationsPage';
+import AssignedTraineesPage from './pages/trainees/AssignedTraineesPage';
+import AssignedTraineeDetailPage from './pages/trainees/AssignedTraineeDetailPage';
 
 const modulePage = (title: string, description: string) => <ModulePage title={title} description={description} />;
 
@@ -74,7 +76,8 @@ export default function App() {
             <Route path="settings" element={modulePage('System Settings', 'Manage organization-level and global settings.')} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="progress/:id" element={<ProgressDetailPage />} />
-            <Route path="assigned-trainees" element={modulePage('Assigned Trainees', 'View users assigned to your scope.')} />
+            <Route path="assigned-trainees" element={<AssignedTraineesPage />} />
+            <Route path="assigned-trainees/:id" element={<AssignedTraineeDetailPage />} />
             <Route path="printables" element={<PrintableReportsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="profile" element={modulePage('Profile', 'Review and update the current user profile.')} />

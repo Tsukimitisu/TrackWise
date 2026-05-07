@@ -1,0 +1,285 @@
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import client from '../../api/client';
+import { useAuth } from '../../auth/AuthContext';
+
+interface AssignmentItem {
+  id: number;
+  user_id: number;
+  program_id: number;
+  supervisor_id?: number | null;
+  coordinator_id?: number | null;
+  required_hours: number;
+  completed_hours: number;
+  status: string;
+  user?: {
+    first_name: string;
+    last_name: string;
+    email?: string;
+  };
+  program?: {
+    name: string;
+  };
+  supervisor?: {
+    first_name: string;
+    last_name: string;
+  };
+  coordinator?: {
+    first_name: string;
+    last_name: string;
+  };
+}
+
+type FilterMode = 'all' | 'active' | 'completed' | 'dropped' | 'suspended';
+
+function normalizeList<T>(payload: unknown): T[] {
+  if (Array.isArray(payload)) return payload as T[];
+  if (payload && typeof payload === 'object' && 'data' in payload && Array.isArray((payload as { data: unknown }).data)) {
+    return (payload as { data: T[] }).data;
+  }
+  return [];
+}
+
+export default function AssignedTraineesPage() {
+  const [assignments, setAssignments] = useState<AssignmentItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<FilterMode>('all');
+  const [search, setSearch] = useState('');
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    void loadAssignments();
+  }, []);
+
+  const loadAssignments = async () => {
+    try {
+      setLoading(true);
+      const response = await client.get('/assignments');
+      setAssignments(normalizeList<AssignmentItem>(response.data));
+    } catch (error) {
+      console.error('Error loading assignments:', error);
+      setAssignments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const scopedAssignments = useMemo(() => {
+    const role = user?.role.name;
+    const userId = user?.id ?? 0;
+
+    return assignments.filter((assignment) => {
+      const roleMatch =
+        !role ||
+        role === 'Super Admin' ||
+        role === 'Organization Admin' ||
+        (role === 'Coordinator' && assignment.coordinator_id === userId) ||
+        (role === 'Supervisor' && assignment.supervisor_id === userId) ||
+        (role === 'Student' && assignment.user_id === userId);
+
+      if (!roleMatch) return false;
+      if (filter !== 'all' && assignment.status !== filter) return false;
+
+      const query = search.trim().toLowerCase();
+      if (!query) return true;
+
+      const traineeName = `${assignment.user?.first_name ?? ''} ${assignment.user?.last_name ?? ''}`.toLowerCase();
+      const programName = (assignment.program?.name ?? '').toLowerCase();
+      const supervisorName = `${assignment.supervisor?.first_name ?? ''} ${assignment.supervisor?.last_name ?? ''}`.toLowerCase();
+      const coordinatorName = `${assignment.coordinator?.first_name ?? ''} ${assignment.coordinator?.last_name ?? ''}`.toLowerCase();
+
+      return (
+        traineeName.includes(query) ||
+        programName.includes(query) ||
+        supervisorName.includes(query) ||
+        coordinatorName.includes(query)
+      );
+    });
+  }, [assignments, filter, search, user?.id, user?.role.name]);
+
+  const summary = useMemo(() => {
+    const total = scopedAssignments.length;
+    const active = scopedAssignments.filter((assignment) => assignment.status === 'active').length;
+    const completed = scopedAssignments.filter((assignment) => assignment.status === 'completed').length;
+    const completionRate =
+      total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    return { total, active, completed, completionRate };
+  }, [scopedAssignments]);
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-soft backdrop-blur-xl">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Assigned Trainees</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-ink-900">Monitor trainee assignments</h1>
+            <p className="mt-3 max-w-3xl text-slate-600">
+              Review active, completed, and suspended trainee assignments with a quick summary of progress.
+            </p>
+          </div>
+          <button
+            onClick={loadAssignments}
+            className="rounded-2xl border border-ink-200 bg-white px-4 py-2 text-sm font-semibold text-ink-800 hover:bg-ink-50"
+          >
+            Refresh
+          </button>
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-4">
+        <MetricCard label="Total" value={String(summary.total)} tone="ink" />
+        <MetricCard label="Active" value={String(summary.active)} tone="green" />
+        <MetricCard label="Completed" value={String(summary.completed)} tone="blue" />
+        <MetricCard label="Completion Rate" value={`${summary.completionRate}%`} tone="amber" />
+      </section>
+
+      <section className="rounded-[2rem] border border-white/70 bg-white/80 p-5 shadow-soft backdrop-blur-xl">
+        <div className="flex flex-wrap gap-2">
+          {([
+            ['all', 'All'],
+            ['active', 'Active'],
+            ['completed', 'Completed'],
+            ['suspended', 'Suspended'],
+            ['dropped', 'Dropped'],
+          ] as const).map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => setFilter(value)}
+              className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+                filter === value ? 'bg-ink-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search trainee, program, supervisor, or coordinator"
+            className="ml-auto min-w-[260px] flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm outline-none focus:border-ink-400"
+          />
+        </div>
+      </section>
+
+      {loading ? (
+        <div className="rounded-[2rem] border border-white/70 bg-white/80 p-10 text-center text-slate-600 shadow-soft backdrop-blur-xl">
+          Loading assigned trainees...
+        </div>
+      ) : scopedAssignments.length === 0 ? (
+        <div className="rounded-[2rem] border border-white/70 bg-white/80 p-10 text-center text-slate-500 shadow-soft backdrop-blur-xl">
+          No assigned trainees found.
+        </div>
+      ) : (
+        <section className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-soft backdrop-blur-xl">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200 text-sm">
+              <thead className="bg-slate-50/80 text-slate-500">
+                <tr>
+                  <th className="px-5 py-3 text-left font-medium">Trainee</th>
+                  <th className="px-5 py-3 text-left font-medium">Program</th>
+                  <th className="px-5 py-3 text-left font-medium">Supervisor</th>
+                  <th className="px-5 py-3 text-left font-medium">Coordinator</th>
+                  <th className="px-5 py-3 text-right font-medium">Hours</th>
+                  <th className="px-5 py-3 text-center font-medium">Progress</th>
+                  <th className="px-5 py-3 text-center font-medium">Status</th>
+                  <th className="px-5 py-3 text-center font-medium">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 bg-white">
+                {scopedAssignments.map((assignment) => {
+                  const progress = assignment.required_hours > 0
+                    ? Math.min(100, (Number(assignment.completed_hours || 0) / Number(assignment.required_hours)) * 100)
+                    : 0;
+
+                  return (
+                    <tr key={assignment.id} className="hover:bg-slate-50">
+                      <td className="px-5 py-4 font-medium text-ink-900">
+                        {assignment.user?.first_name} {assignment.user?.last_name}
+                        <div className="text-xs font-normal text-slate-500">{assignment.user?.email ?? 'No email'}</div>
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">{assignment.program?.name ?? 'N/A'}</td>
+                      <td className="px-5 py-4 text-slate-600">
+                        {assignment.supervisor ? `${assignment.supervisor.first_name} ${assignment.supervisor.last_name}` : 'N/A'}
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        {assignment.coordinator ? `${assignment.coordinator.first_name} ${assignment.coordinator.last_name}` : 'N/A'}
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <div className="font-semibold text-ink-900">{Number(assignment.completed_hours || 0).toFixed(2)}</div>
+                        <div className="text-xs text-slate-500">of {Number(assignment.required_hours || 0).toFixed(2)}</div>
+                      </td>
+                      <td className="px-5 py-4 text-center">
+                        <div className="mx-auto h-2 w-28 rounded-full bg-slate-200">
+                          <div
+                            className="h-2 rounded-full bg-ink-900"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                        <div className="mt-2 text-xs font-semibold text-slate-600">{progress.toFixed(1)}%</div>
+                      </td>
+                      <td className="px-5 py-4 text-center">
+                        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone(assignment.status)}`}>
+                          {assignment.status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-center">
+                        <button
+                          onClick={() => navigate(`/app/assigned-trainees/${assignment.id}`)}
+                          className="rounded-xl bg-ink-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-ink-700"
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: 'ink' | 'green' | 'blue' | 'amber';
+}) {
+  const toneClass = {
+    ink: 'text-ink-900',
+    green: 'text-emerald-700',
+    blue: 'text-sky-700',
+    amber: 'text-amber-700',
+  }[tone];
+
+  return (
+    <div className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-soft">
+      <p className="text-sm text-slate-500">{label}</p>
+      <p className={`mt-2 text-2xl font-black ${toneClass}`}>{value}</p>
+    </div>
+  );
+}
+
+function statusTone(status: string) {
+  switch (status) {
+    case 'active':
+      return 'bg-emerald-100 text-emerald-700';
+    case 'completed':
+      return 'bg-blue-100 text-blue-700';
+    case 'suspended':
+      return 'bg-amber-100 text-amber-700';
+    case 'dropped':
+      return 'bg-rose-100 text-rose-700';
+    default:
+      return 'bg-slate-100 text-slate-700';
+  }
+}
