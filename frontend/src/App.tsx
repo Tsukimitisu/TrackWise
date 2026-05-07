@@ -35,6 +35,7 @@ import AssignmentsPage from './pages/assignments/AssignmentsPage';
 import AssignmentFormPage from './pages/assignments/AssignmentFormPage';
 import AssignmentDetailPage from './pages/assignments/AssignmentDetailPage';
 import ProgressPage from './pages/progress/ProgressPage';
+import SystemSettingsPage from './pages/settings/SystemSettingsPage';
 import ProgressDetailPage from './pages/progress/ProgressDetailPage';
 import PrintableReportsPage from './pages/printables/PrintableReportsPage';
 import NotificationsPage from './pages/notifications/NotificationsPage';
@@ -91,7 +92,7 @@ export default function App() {
             <Route path="daily-reports" element={modulePage('Daily Reports', 'Create, submit, and review daily work reports.')} />
             <Route path="weekly-reports" element={modulePage('Weekly Reports', 'Create, submit, and review weekly narrative reports.')} />
             <Route path="reports" element={modulePage('Reports', 'Printable DTR and export-ready summaries.')} />
-            <Route path="settings" element={modulePage('System Settings', 'Manage organization-level and global settings.')} />
+            <Route path="settings" element={<SystemSettingsPage />} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="progress/:id" element={<ProgressDetailPage />} />
             <Route path="assigned-trainees" element={<AssignedTraineesPage />} />
