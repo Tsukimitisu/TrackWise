@@ -27,6 +27,19 @@ class WeeklyReportController extends Controller
             $query->where('week_number', $request->week_number);
         }
 
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->whereHas('userProgram.user', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            })
+            ->orWhereHas('userProgram.program', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            })
+            ->orWhere('summary', 'like', "%{$search}%");
+        }
+
         return response()->json($query->latest('start_date')->paginate(15));
     }
 

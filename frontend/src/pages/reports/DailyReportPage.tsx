@@ -23,18 +23,20 @@ const DailyReportPage = () => {
   const [reports, setReports] = useState<DailyReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('');
+  const [search, setSearch] = useState<string>('');
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchReports();
-  }, [filter]);
+  }, [filter, search]);
 
   const fetchReports = async () => {
     try {
       setLoading(true);
       const params: Record<string, string> = {};
       if (filter) params.status = filter;
+      if (search) params.search = search;
 
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/daily-reports`, { params });
       setReports(response.data.data || response.data);
@@ -84,20 +86,29 @@ const DailyReportPage = () => {
           </button>
         </div>
 
-        <div className="mb-4 flex gap-2">
-          {['', 'draft', 'submitted', 'approved', 'rejected', 'needs_revision'].map(status => (
-            <button
-              key={status}
-              onClick={() => setFilter(status)}
-              className={`px-3 py-1 rounded ${
-                filter === status
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              {status || 'All'}
-            </button>
-          ))}
+        <div className="mb-4 space-y-3">
+          <input
+            type="text"
+            placeholder="Search by name, email, program, or tasks..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <div className="flex gap-2 flex-wrap">
+            {['', 'draft', 'submitted', 'approved', 'rejected', 'needs_revision'].map(status => (
+              <button
+                key={status}
+                onClick={() => setFilter(status)}
+                className={`px-3 py-1 rounded ${
+                  filter === status
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {status || 'All'}
+              </button>
+            ))}
+          </div>
         </div>
 
         {loading ? (

@@ -227,7 +227,7 @@ const WeeklyReportDetailPage = () => {
             </>
           )}
 
-          {report.status === 'submitted' && (
+          {report.status === 'submitted' && ['supervisor', 'coordinator', 'admin'].includes((user?.role as any)?.name || user?.role) && (
             <>
               <button
                 onClick={() => setReviewing(!reviewing)}
@@ -256,7 +256,7 @@ const WeeklyReportDetailPage = () => {
           )}
         </div>
 
-        {reviewing && report.status === 'submitted' && (
+        {reviewing && report.status === 'submitted' && ['supervisor', 'coordinator', 'admin'].includes((user?.role as any)?.name || user?.role) && (
           <div className="mt-6 bg-blue-50 rounded-lg p-6 border border-blue-200">
             <h3 className="text-lg font-semibold mb-4">Review Report</h3>
             <textarea

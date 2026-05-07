@@ -24,6 +24,19 @@ class DailyReportController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->whereHas('userProgram.user', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            })
+            ->orWhereHas('userProgram.program', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            })
+            ->orWhere('tasks', 'like', "%{$search}%");
+        }
+
         if ($request->has('report_date_from') && $request->has('report_date_to')) {
             $query->whereBetween('report_date', [$request->report_date_from, $request->report_date_to]);
         }
