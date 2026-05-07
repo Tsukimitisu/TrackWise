@@ -21,6 +21,8 @@ Route::post('/auth/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
 
     Route::apiResource('organizations', OrganizationController::class);
     Route::patch('/organizations/{organization}/toggle-status', [OrganizationController::class, 'toggleStatus']);

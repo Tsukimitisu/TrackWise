@@ -36,6 +36,7 @@ import AssignmentFormPage from './pages/assignments/AssignmentFormPage';
 import AssignmentDetailPage from './pages/assignments/AssignmentDetailPage';
 import ProgressPage from './pages/progress/ProgressPage';
 import SystemSettingsPage from './pages/settings/SystemSettingsPage';
+import ProfilePage from './pages/profile/ProfilePage';
 import ProgressDetailPage from './pages/progress/ProgressDetailPage';
 import PrintableReportsPage from './pages/printables/PrintableReportsPage';
 import NotificationsPage from './pages/notifications/NotificationsPage';
@@ -99,7 +100,7 @@ export default function App() {
             <Route path="assigned-trainees/:id" element={<AssignedTraineeDetailPage />} />
             <Route path="printables" element={<PrintableReportsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
-            <Route path="profile" element={modulePage('Profile', 'Review and update the current user profile.')} />
+            <Route path="profile" element={<ProfilePage />} />
             <Route path="*" element={<Navigate to="/app" replace />} />
           </Route>
         </Route>
