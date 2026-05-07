@@ -31,6 +31,9 @@ import ProgramDetailPage from './pages/programs/ProgramDetailPage';
 import UsersPage from './pages/users/UsersPage';
 import UserFormPage from './pages/users/UserFormPage';
 import UserDetailPage from './pages/users/UserDetailPage';
+import AssignmentsPage from './pages/assignments/AssignmentsPage';
+import AssignmentFormPage from './pages/assignments/AssignmentFormPage';
+import AssignmentDetailPage from './pages/assignments/AssignmentDetailPage';
 import ProgressPage from './pages/progress/ProgressPage';
 import ProgressDetailPage from './pages/progress/ProgressDetailPage';
 import PrintableReportsPage from './pages/printables/PrintableReportsPage';
@@ -64,7 +67,10 @@ export default function App() {
             <Route path="programs/create" element={<ProgramFormPage />} />
             <Route path="programs/:id" element={<ProgramDetailPage />} />
             <Route path="programs/:id/edit" element={<ProgramFormPage />} />
-            <Route path="assignments" element={modulePage('Assignments', 'Assign users to programs, supervisors, and coordinators.')} />
+            <Route path="assignments" element={<AssignmentsPage />} />
+            <Route path="assignments/create" element={<AssignmentFormPage />} />
+            <Route path="assignments/:id" element={<AssignmentDetailPage />} />
+            <Route path="assignments/:id/edit" element={<AssignmentFormPage />} />
             <Route path="attendance" element={<AttendancePage />} />
             <Route path="time-in-out" element={<TimeInOutPage />} />
             <Route path="reports/daily" element={<DailyReportPage />} />
