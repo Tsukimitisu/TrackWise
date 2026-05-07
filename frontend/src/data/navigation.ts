@@ -5,7 +5,10 @@ export interface NavItem {
   to: string;
 }
 
-const commonItems: NavItem[] = [{ label: 'Dashboard', to: '/app' }];
+const commonItems: NavItem[] = [
+  { label: 'Dashboard', to: '/app' },
+  { label: 'Notifications', to: '/app/notifications' },
+];
 
 const roleNav: Record<RoleName, NavItem[]> = {
   'Super Admin': [
