@@ -25,6 +25,8 @@ import EvaluationDetailPage from './pages/evaluations/EvaluationDetailPage';
 import OrganizationPage from './pages/organizations/OrganizationPage';
 import OrganizationFormPage from './pages/organizations/OrganizationFormPage';
 import OrganizationDetailPage from './pages/organizations/OrganizationDetailPage';
+import ProgressPage from './pages/progress/ProgressPage';
+import ProgressDetailPage from './pages/progress/ProgressDetailPage';
 
 const modulePage = (title: string, description: string) => <ModulePage title={title} description={description} />;
 
@@ -68,7 +70,8 @@ export default function App() {
             <Route path="weekly-reports" element={modulePage('Weekly Reports', 'Create, submit, and review weekly narrative reports.')} />
             <Route path="reports" element={modulePage('Reports', 'Printable DTR and export-ready summaries.')} />
             <Route path="settings" element={modulePage('System Settings', 'Manage organization-level and global settings.')} />
-            <Route path="progress" element={modulePage('Progress Tracking', 'Monitor completed hours and remaining requirements.')} />
+            <Route path="progress" element={<ProgressPage />} />
+            <Route path="progress/:id" element={<ProgressDetailPage />} />
             <Route path="assigned-trainees" element={modulePage('Assigned Trainees', 'View users assigned to your scope.')} />
             <Route path="printables" element={modulePage('Printable Reports', 'Generate browser-print friendly reports and summaries.')} />
             <Route path="profile" element={modulePage('Profile', 'Review and update the current user profile.')} />

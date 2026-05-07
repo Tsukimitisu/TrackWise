@@ -1,0 +1,237 @@
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import client from '../../api/client';
+
+interface AssignmentItem {
+  id: number;
+  required_hours: number;
+  completed_hours: number;
+  status: string;
+  user?: {
+    first_name: string;
+    last_name: string;
+    email?: string;
+  };
+  program?: {
+    name: string;
+  };
+  supervisor?: {
+    first_name: string;
+    last_name: string;
+  };
+  coordinator?: {
+    first_name: string;
+    last_name: string;
+  };
+}
+
+interface AttendanceLogItem {
+  id: number;
+  user_program_id?: number;
+  date: string;
+  time_in?: string | null;
+  time_out?: string | null;
+  total_hours: number;
+  status: string;
+  approval_status: string;
+  userProgram?: {
+    id: number;
+  };
+}
+
+function normalizeList<T>(payload: unknown): T[] {
+  if (Array.isArray(payload)) return payload as T[];
+  if (payload && typeof payload === 'object' && 'data' in payload && Array.isArray((payload as { data: unknown }).data)) {
+    return (payload as { data: T[] }).data;
+  }
+  return [];
+}
+
+export default function ProgressDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [assignment, setAssignment] = useState<AssignmentItem | null>(null);
+  const [logs, setLogs] = useState<AttendanceLogItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!id) {
+        navigate('/app/progress');
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const [assignmentRes, logRes] = await Promise.all([
+          client.get(`/assignments/${id}`),
+          client.get('/attendance-logs'),
+        ]);
+
+        setAssignment(assignmentRes.data as AssignmentItem);
+        const allLogs = normalizeList<AttendanceLogItem>(logRes.data);
+        const assignmentLogs = allLogs.filter((log) => (log.user_program_id ?? log.userProgram?.id) === Number(id));
+        setLogs(assignmentLogs);
+      } catch (error) {
+        console.error('Error loading progress detail:', error);
+        setAssignment(null);
+        setLogs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void load();
+  }, [id, navigate]);
+
+  const metrics = useMemo(() => {
+    const required = Number(assignment?.required_hours ?? 0);
+    const approved = logs
+      .filter((log) => log.approval_status === 'approved')
+      .reduce((sum, log) => sum + Number(log.total_hours || 0), 0);
+    const recorded = logs.reduce((sum, log) => sum + Number(log.total_hours || 0), 0);
+
+    const completed = Math.max(Number(assignment?.completed_hours ?? 0), approved);
+    const remaining = Math.max(0, required - completed);
+    const progress = required > 0 ? Math.min(100, (completed / required) * 100) : 0;
+
+    return {
+      required,
+      approved,
+      recorded,
+      completed,
+      remaining,
+      progress,
+    };
+  }, [assignment?.completed_hours, assignment?.required_hours, logs]);
+
+  if (loading) {
+    return <div className="py-10 text-center text-slate-600">Loading progress detail...</div>;
+  }
+
+  if (!assignment) {
+    return (
+      <div className="space-y-4 py-10 text-center">
+        <p className="text-slate-700">Assignment not found.</p>
+        <button
+          onClick={() => navigate('/app/progress')}
+          className="rounded-2xl bg-ink-900 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-700"
+        >
+          Back to Progress
+        </button>
+      </div>
+    );
+  }
+
+  const traineeName = `${assignment.user?.first_name ?? ''} ${assignment.user?.last_name ?? ''}`.trim() || `Assignment #${assignment.id}`;
+  const supervisorName = `${assignment.supervisor?.first_name ?? ''} ${assignment.supervisor?.last_name ?? ''}`.trim();
+  const coordinatorName = `${assignment.coordinator?.first_name ?? ''} ${assignment.coordinator?.last_name ?? ''}`.trim();
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-soft backdrop-blur-xl">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Progress Detail</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-ink-900">{traineeName}</h1>
+            <p className="mt-2 text-slate-600">{assignment.program?.name ?? 'No program assigned'}</p>
+          </div>
+          <button
+            onClick={() => navigate('/app/progress')}
+            className="rounded-2xl border border-ink-200 bg-white px-4 py-2 text-sm font-semibold text-ink-800 hover:bg-ink-50"
+          >
+            Back
+          </button>
+        </div>
+
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
+            <p className="text-slate-500">Email</p>
+            <p className="mt-1 font-semibold text-ink-900">{assignment.user?.email ?? 'N/A'}</p>
+          </div>
+          <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
+            <p className="text-slate-500">Supervisor</p>
+            <p className="mt-1 font-semibold text-ink-900">{supervisorName || 'N/A'}</p>
+          </div>
+          <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
+            <p className="text-slate-500">Coordinator</p>
+            <p className="mt-1 font-semibold text-ink-900">{coordinatorName || 'N/A'}</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-5">
+        <MetricCard label="Required" value={metrics.required.toFixed(2)} tone="ink" />
+        <MetricCard label="Approved" value={metrics.approved.toFixed(2)} tone="green" />
+        <MetricCard label="Recorded" value={metrics.recorded.toFixed(2)} tone="blue" />
+        <MetricCard label="Remaining" value={metrics.remaining.toFixed(2)} tone="amber" />
+        <MetricCard label="Progress" value={`${metrics.progress.toFixed(1)}%`} tone="violet" />
+      </section>
+
+      <section className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-soft backdrop-blur-xl">
+        <h2 className="mb-4 text-lg font-semibold text-ink-900">Attendance Breakdown</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <thead className="bg-slate-50/80 text-slate-500">
+              <tr>
+                <th className="px-5 py-3 text-left font-medium">Date</th>
+                <th className="px-5 py-3 text-left font-medium">Time In</th>
+                <th className="px-5 py-3 text-left font-medium">Time Out</th>
+                <th className="px-5 py-3 text-right font-medium">Hours</th>
+                <th className="px-5 py-3 text-left font-medium">Status</th>
+                <th className="px-5 py-3 text-left font-medium">Approval</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 bg-white">
+              {logs.map((log) => (
+                <tr key={log.id}>
+                  <td className="px-5 py-4">{log.date}</td>
+                  <td className="px-5 py-4">{log.time_in ?? 'N/A'}</td>
+                  <td className="px-5 py-4">{log.time_out ?? 'N/A'}</td>
+                  <td className="px-5 py-4 text-right">{Number(log.total_hours || 0).toFixed(2)}</td>
+                  <td className="px-5 py-4">{log.status}</td>
+                  <td className="px-5 py-4">
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">{log.approval_status}</span>
+                  </td>
+                </tr>
+              ))}
+
+              {logs.length === 0 ? (
+                <tr>
+                  <td className="px-5 py-10 text-center text-slate-500" colSpan={6}>
+                    No attendance logs found for this assignment.
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: 'ink' | 'green' | 'blue' | 'amber' | 'violet';
+}) {
+  const toneClass = {
+    ink: 'text-ink-900',
+    green: 'text-emerald-700',
+    blue: 'text-sky-700',
+    amber: 'text-amber-700',
+    violet: 'text-indigo-700',
+  }[tone];
+
+  return (
+    <div className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-soft">
+      <p className="text-sm text-slate-500">{label}</p>
+      <p className={`mt-2 text-2xl font-black ${toneClass}`}>{value}</p>
+    </div>
+  );
+}
