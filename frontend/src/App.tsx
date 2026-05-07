@@ -27,6 +27,7 @@ import OrganizationFormPage from './pages/organizations/OrganizationFormPage';
 import OrganizationDetailPage from './pages/organizations/OrganizationDetailPage';
 import ProgressPage from './pages/progress/ProgressPage';
 import ProgressDetailPage from './pages/progress/ProgressDetailPage';
+import PrintableReportsPage from './pages/printables/PrintableReportsPage';
 
 const modulePage = (title: string, description: string) => <ModulePage title={title} description={description} />;
 
@@ -73,7 +74,7 @@ export default function App() {
             <Route path="progress" element={<ProgressPage />} />
             <Route path="progress/:id" element={<ProgressDetailPage />} />
             <Route path="assigned-trainees" element={modulePage('Assigned Trainees', 'View users assigned to your scope.')} />
-            <Route path="printables" element={modulePage('Printable Reports', 'Generate browser-print friendly reports and summaries.')} />
+            <Route path="printables" element={<PrintableReportsPage />} />
             <Route path="profile" element={modulePage('Profile', 'Review and update the current user profile.')} />
             <Route path="*" element={<Navigate to="/app" replace />} />
           </Route>
