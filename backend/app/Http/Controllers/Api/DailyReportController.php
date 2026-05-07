@@ -7,6 +7,7 @@ use App\Http\Requests\DailyReportRequest;
 use App\Models\DailyReport;
 use App\Models\User;
 use App\Models\UserProgram;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -79,6 +80,13 @@ class DailyReportController extends Controller
             'submitted_at' => now(),
         ]);
 
+        // Notify the student that report was submitted
+        NotificationService::notifyReportSubmitted(
+            $dailyReport->userProgram->user_id,
+            'Daily',
+            $dailyReport->id
+        );
+
         return response()->json($dailyReport);
     }
 
@@ -93,6 +101,13 @@ class DailyReportController extends Controller
             'reviewed_by' => auth()->id(),
             'review_comment' => $validated['review_comment'] ?? null,
         ]);
+
+        // Notify the student that report was approved
+        NotificationService::notifyReportApproved(
+            $dailyReport->userProgram->user_id,
+            'Daily',
+            $dailyReport->id
+        );
 
         return response()->json($dailyReport);
     }
@@ -109,6 +124,14 @@ class DailyReportController extends Controller
             'review_comment' => $validated['review_comment'],
         ]);
 
+        // Notify the student that report was rejected
+        NotificationService::notifyReportRejected(
+            $dailyReport->userProgram->user_id,
+            'Daily',
+            $dailyReport->id,
+            $validated['review_comment']
+        );
+
         return response()->json($dailyReport);
     }
 
@@ -123,6 +146,14 @@ class DailyReportController extends Controller
             'reviewed_by' => auth()->id(),
             'review_comment' => $validated['review_comment'],
         ]);
+
+        // Notify the student that report needs revision
+        NotificationService::notifyReportNeedsRevision(
+            $dailyReport->userProgram->user_id,
+            'Daily',
+            $dailyReport->id,
+            $validated['review_comment']
+        );
 
         return response()->json($dailyReport);
     }

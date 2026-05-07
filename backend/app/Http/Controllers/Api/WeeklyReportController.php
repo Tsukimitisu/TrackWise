@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\WeeklyReportRequest;
 use App\Models\DailyReport;
 use App\Models\WeeklyReport;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -125,6 +126,13 @@ class WeeklyReportController extends Controller
             'submitted_at' => now(),
         ]);
 
+        // Notify the student that report was submitted
+        NotificationService::notifyReportSubmitted(
+            $weeklyReport->userProgram->user_id,
+            'Weekly',
+            $weeklyReport->id
+        );
+
         return response()->json($weeklyReport);
     }
 
@@ -139,6 +147,13 @@ class WeeklyReportController extends Controller
             'reviewed_by' => auth()->id(),
             'review_comment' => $validated['review_comment'] ?? null,
         ]);
+
+        // Notify the student that report was approved
+        NotificationService::notifyReportApproved(
+            $weeklyReport->userProgram->user_id,
+            'Weekly',
+            $weeklyReport->id
+        );
 
         return response()->json($weeklyReport);
     }
@@ -155,6 +170,14 @@ class WeeklyReportController extends Controller
             'review_comment' => $validated['review_comment'],
         ]);
 
+        // Notify the student that report was rejected
+        NotificationService::notifyReportRejected(
+            $weeklyReport->userProgram->user_id,
+            'Weekly',
+            $weeklyReport->id,
+            $validated['review_comment']
+        );
+
         return response()->json($weeklyReport);
     }
 
@@ -169,6 +192,14 @@ class WeeklyReportController extends Controller
             'reviewed_by' => auth()->id(),
             'review_comment' => $validated['review_comment'],
         ]);
+
+        // Notify the student that report needs revision
+        NotificationService::notifyReportNeedsRevision(
+            $weeklyReport->userProgram->user_id,
+            'Weekly',
+            $weeklyReport->id,
+            $validated['review_comment']
+        );
 
         return response()->json($weeklyReport);
     }
