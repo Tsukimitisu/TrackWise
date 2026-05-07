@@ -25,6 +25,9 @@ import EvaluationDetailPage from './pages/evaluations/EvaluationDetailPage';
 import OrganizationPage from './pages/organizations/OrganizationPage';
 import OrganizationFormPage from './pages/organizations/OrganizationFormPage';
 import OrganizationDetailPage from './pages/organizations/OrganizationDetailPage';
+import ProgramsPage from './pages/programs/ProgramsPage';
+import ProgramFormPage from './pages/programs/ProgramFormPage';
+import ProgramDetailPage from './pages/programs/ProgramDetailPage';
 import ProgressPage from './pages/progress/ProgressPage';
 import ProgressDetailPage from './pages/progress/ProgressDetailPage';
 import PrintableReportsPage from './pages/printables/PrintableReportsPage';
@@ -51,7 +54,10 @@ export default function App() {
             <Route path="organizations/:id" element={<OrganizationDetailPage />} />
             <Route path="organizations/:id/edit" element={<OrganizationFormPage />} />
             <Route path="users" element={modulePage('Users', 'Manage role-based user accounts and assignments.')} />
-            <Route path="programs" element={modulePage('Programs', 'Configure tracker programs and required hours.')} />
+            <Route path="programs" element={<ProgramsPage />} />
+            <Route path="programs/create" element={<ProgramFormPage />} />
+            <Route path="programs/:id" element={<ProgramDetailPage />} />
+            <Route path="programs/:id/edit" element={<ProgramFormPage />} />
             <Route path="assignments" element={modulePage('Assignments', 'Assign users to programs, supervisors, and coordinators.')} />
             <Route path="attendance" element={<AttendancePage />} />
             <Route path="time-in-out" element={<TimeInOutPage />} />
