@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../auth/AuthContext';
 import AppShell from '../../components/AppShell';
+import { downloadDailyReportsCSV } from '../../utils/exportHelper';
 
 interface DailyReport {
   id: number;
@@ -78,12 +79,26 @@ const DailyReportPage = () => {
       <div className="max-w-6xl mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Daily Reports</h1>
-          <button
-            onClick={() => navigate('/reports/daily/create')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            New Report
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={async () => {
+                try {
+                  await downloadDailyReportsCSV({ status: filter, search });
+                } catch (error) {
+                  alert('Failed to export data');
+                }
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              📥 Export CSV
+            </button>
+            <button
+              onClick={() => navigate('/reports/daily/create')}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              New Report
+            </button>
+          </div>
         </div>
 
         <div className="mb-4 space-y-3">

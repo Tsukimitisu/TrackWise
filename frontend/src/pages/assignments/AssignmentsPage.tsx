@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { hasRole } from '../../utils/roleHelper';
+import { downloadAssignmentsCSV } from '../../utils/exportHelper';
 
 interface Assignment {
   id: number;
@@ -44,9 +45,23 @@ const AssignmentsPage = () => {
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Assignments</h1>
-        {canManage && (
-          <button onClick={() => navigate('/app/assignments/create')} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">+ New Assignment</button>
-        )}
+        <div className="flex gap-2">
+          <button
+            onClick={async () => {
+              try {
+                await downloadAssignmentsCSV();
+              } catch (error) {
+                alert('Failed to export data');
+              }
+            }}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            📥 Export CSV
+          </button>
+          {canManage && (
+            <button onClick={() => navigate('/app/assignments/create')} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">+ New Assignment</button>
+          )}
+        </div>
       </div>
 
       {loading ? (
