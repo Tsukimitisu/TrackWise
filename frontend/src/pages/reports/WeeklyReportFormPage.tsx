@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../auth/AuthContext';
-import AppShell from '../../components/AppShell';
 
 interface UserProgram {
   id: number;
@@ -156,10 +155,9 @@ const WeeklyReportFormPage = () => {
     }
   };
 
-  if (loading) return <AppShell><div className="text-center py-8">Loading...</div></AppShell>;
+  if (loading) return <div className="py-8 text-center text-slate-500 dark:text-slate-400">Loading...</div>;
 
   return (
-    <AppShell>
       <div className="max-w-2xl mx-auto p-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">
           {id ? 'Edit Weekly Report' : 'Create Weekly Report'}
@@ -380,7 +378,6 @@ const WeeklyReportFormPage = () => {
           )}
         </form>
       </div>
-    </AppShell>
   );
 };
 

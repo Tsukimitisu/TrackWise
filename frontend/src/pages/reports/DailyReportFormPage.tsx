@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../auth/AuthContext';
-import AppShell from '../../components/AppShell';
 
 interface UserProgram {
   id: number;
@@ -76,7 +75,7 @@ const DailyReportFormPage = () => {
       });
     } catch (error) {
       console.error('Error fetching report:', error);
-      navigate('/reports/daily');
+      navigate('/app/reports/daily');
     } finally {
       setLoading(false);
     }
@@ -101,7 +100,7 @@ const DailyReportFormPage = () => {
         await axios.post(`${import.meta.env.VITE_API_BASE_URL}/daily-reports`, formData);
       }
 
-      navigate('/reports/daily');
+      navigate('/app/reports/daily');
     } catch (error) {
       console.error('Error saving report:', error);
       alert('Error saving report. Please try again.');
@@ -110,10 +109,9 @@ const DailyReportFormPage = () => {
     }
   };
 
-  if (loading) return <AppShell><div className="text-center py-8">Loading...</div></AppShell>;
+  if (loading) return <div className="py-8 text-center text-slate-500 dark:text-slate-400">Loading...</div>;
 
   return (
-    <AppShell>
       <div className="max-w-2xl mx-auto p-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">
           {id ? 'Edit Daily Report' : 'Create Daily Report'}
@@ -210,7 +208,7 @@ const DailyReportFormPage = () => {
             </button>
             <button
               type="button"
-              onClick={() => navigate('/reports/daily')}
+              onClick={() => navigate('/app/reports/daily')}
               className="px-6 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
             >
               Cancel
@@ -218,7 +216,6 @@ const DailyReportFormPage = () => {
           </div>
         </form>
       </div>
-    </AppShell>
   );
 };
 

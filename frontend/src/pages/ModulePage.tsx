@@ -1,3 +1,5 @@
+import Surface from '../components/ui/Surface';
+
 interface ModulePageProps {
   title: string;
   description: string;
@@ -5,10 +7,12 @@ interface ModulePageProps {
 
 export default function ModulePage({ title, description }: ModulePageProps) {
   return (
-    <section className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-soft backdrop-blur-xl">
-      <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Module</p>
-      <h1 className="mt-2 text-3xl font-black tracking-tight text-ink-900">{title}</h1>
-      <p className="mt-3 max-w-3xl text-slate-600">{description}</p>
-    </section>
+    <Surface className="overflow-hidden p-8">
+      <div className="max-w-3xl">
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Module</p>
+        <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-slate-50">{title}</h1>
+        <p className="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-400">{description}</p>
+      </div>
+    </Surface>
   );
 }

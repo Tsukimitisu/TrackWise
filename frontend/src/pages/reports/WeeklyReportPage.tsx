@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../../auth/AuthContext';
-import AppShell from '../../components/AppShell';
+import Badge from '../../components/ui/Badge';
+import EmptyState from '../../components/ui/EmptyState';
+import PageHeader from '../../components/ui/PageHeader';
+import Surface from '../../components/ui/Surface';
+import { TextField } from '../../components/ui/TextField';
 import { downloadWeeklyReportsCSV } from '../../utils/exportHelper';
 
 interface WeeklyReport {
@@ -26,7 +29,6 @@ const WeeklyReportPage = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('');
   const [search, setSearch] = useState<string>('');
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,149 +51,117 @@ const WeeklyReportPage = () => {
     }
   };
 
+  const filteredReports = useMemo(() => reports, [reports]);
+
   const handleDelete = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this report?')) return;
 
     try {
       await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/weekly-reports/${id}`);
-      setReports(reports.filter(r => r.id !== id));
+      setReports((current) => current.filter((report) => report.id !== id));
     } catch (error) {
       console.error('Error deleting report:', error);
     }
   };
 
-  const getStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return 'bg-green-100 text-green-800';
-      case 'rejected':
-        return 'bg-red-100 text-red-800';
-      case 'submitted':
-        return 'bg-blue-100 text-blue-800';
-      case 'needs_revision':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   return (
-    <AppShell>
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Weekly Narrative Reports</h1>
-          <div className="flex gap-2">
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Reports"
+        title="Weekly Narrative Reports"
+        description="Review weekly submissions with a cleaner hierarchy, consistent actions, and a more modern data table."
+        actions={
+          <div className="flex flex-wrap gap-3">
             <button
               onClick={async () => {
                 try {
                   await downloadWeeklyReportsCSV({ status: filter, search });
-                } catch (error) {
+                } catch {
                   alert('Failed to export data');
                 }
               }}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              className="rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:bg-slate-100"
             >
-              📥 Export CSV
+              Export CSV
             </button>
             <button
               onClick={() => navigate('/app/reports/weekly/create')}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="rounded-2xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
             >
               New Report
             </button>
           </div>
-        </div>
+        }
+      />
 
-        <div className="mb-4 space-y-3">
-          <input
-            type="text"
-            placeholder="Search by name, email, program, or summary..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <div className="flex gap-2 flex-wrap">
-            {['', 'draft', 'submitted', 'approved', 'rejected', 'needs_revision'].map(status => (
+      <Surface className="p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <TextField value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by name, email, program, or summary" className="lg:max-w-xl" />
+          <div className="flex flex-wrap gap-2">
+            {['', 'draft', 'submitted', 'approved', 'rejected', 'needs_revision'].map((status) => (
               <button
-                key={status}
+                key={status || 'all'}
                 onClick={() => setFilter(status)}
-                className={`px-3 py-1 rounded ${
-                  filter === status
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
+                className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${filter === status ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800'}`}
               >
                 {status || 'All'}
               </button>
             ))}
           </div>
         </div>
+      </Surface>
 
-        {loading ? (
-          <div className="text-center py-8">Loading...</div>
-        ) : reports.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">No weekly reports found.</div>
-        ) : (
+      {loading ? (
+        <Surface className="p-10 text-center text-slate-500 dark:text-slate-400">Loading weekly reports...</Surface>
+      ) : filteredReports.length === 0 ? (
+        <EmptyState title="No weekly reports found" description="Try another filter or create the first weekly submission." />
+      ) : (
+        <Surface className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-300">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-4 py-2 text-left">Week #</th>
-                  <th className="px-4 py-2 text-left">Period</th>
-                  <th className="px-4 py-2 text-left">Student</th>
-                  <th className="px-4 py-2 text-left">Program</th>
-                  <th className="px-4 py-2 text-left">Status</th>
-                  <th className="px-4 py-2 text-left">Actions</th>
+            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+              <thead className="sticky top-0 bg-slate-50/95 text-left dark:bg-slate-950/95">
+                <tr className="text-xs uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+                  <th className="px-6 py-4">Week #</th>
+                  <th className="px-6 py-4">Period</th>
+                  <th className="px-6 py-4">Student</th>
+                  <th className="px-6 py-4">Program</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                {reports.map(report => (
-                  <tr key={report.id} className="border-t hover:bg-gray-50">
-                    <td className="px-4 py-2 font-semibold">Week {report.week_number}</td>
-                    <td className="px-4 py-2 text-sm">
-                      {report.start_date} to {report.end_date}
-                    </td>
-                    <td className="px-4 py-2">
-                      {report.userProgram?.user.first_name} {report.userProgram?.user.last_name}
-                    </td>
-                    <td className="px-4 py-2">{report.userProgram?.program.name}</td>
-                    <td className="px-4 py-2">
-                      <span className={`px-2 py-1 rounded text-sm font-medium ${getStatusBadgeColor(report.status)}`}>
-                        {report.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2 flex gap-2">
-                      <button
-                        onClick={() => navigate(`/app/reports/weekly/${report.id}`)}
-                        className="text-blue-600 hover:text-blue-800 text-sm"
-                      >
-                        View
-                      </button>
-                      {report.status === 'draft' && (
-                        <>
-                          <button
-                            onClick={() => navigate(`/app/reports/weekly/${report.id}/edit`)}
-                            className="text-green-600 hover:text-green-800 text-sm"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(report.id)}
-                            className="text-red-600 hover:text-red-800 text-sm"
-                          >
-                            Delete
-                          </button>
-                        </>
-                      )}
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                {filteredReports.map((report) => (
+                  <tr key={report.id} className="transition hover:bg-slate-50/80 dark:hover:bg-slate-900/50">
+                    <td className="px-6 py-4 text-sm font-semibold text-slate-900 dark:text-slate-50">Week {report.week_number}</td>
+                    <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">{report.start_date} to {report.end_date}</td>
+                    <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">{report.userProgram?.user.first_name} {report.userProgram?.user.last_name}</td>
+                    <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">{report.userProgram?.program.name}</td>
+                    <td className="px-6 py-4"><Badge tone={report.status === 'approved' ? 'success' : report.status === 'rejected' ? 'danger' : report.status === 'needs_revision' ? 'warning' : 'info'}>{report.status}</Badge></td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-end gap-2">
+                        <button onClick={() => navigate(`/app/reports/weekly/${report.id}`)} className="rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
+                          View
+                        </button>
+                        {report.status === 'draft' ? (
+                          <>
+                            <button onClick={() => navigate(`/app/reports/weekly/${report.id}/edit`)} className="rounded-2xl bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
+                              Edit
+                            </button>
+                            <button onClick={() => handleDelete(report.id)} className="rounded-2xl bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-rose-500">
+                              Delete
+                            </button>
+                          </>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
-    </AppShell>
+        </Surface>
+      )}
+    </div>
   );
 };
 

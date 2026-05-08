@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../auth/AuthContext';
-import AppShell from '../../components/AppShell';
 
 interface DailyReport {
   id: number;
@@ -43,7 +42,7 @@ const DailyReportDetailPage = () => {
       setReport(response.data);
     } catch (error) {
       console.error('Error fetching report:', error);
-      navigate('/reports/daily');
+      navigate('/app/reports/daily');
     } finally {
       setLoading(false);
     }
@@ -105,8 +104,8 @@ const DailyReportDetailPage = () => {
     }
   };
 
-  if (loading) return <AppShell><div className="text-center py-8">Loading...</div></AppShell>;
-  if (!report) return <AppShell><div className="text-center py-8 text-red-600">Report not found</div></AppShell>;
+  if (loading) return <div className="py-8 text-center text-slate-500 dark:text-slate-400">Loading...</div>;
+  if (!report) return <div className="py-8 text-center text-rose-600 dark:text-rose-300">Report not found</div>;
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
@@ -124,12 +123,11 @@ const DailyReportDetailPage = () => {
   };
 
   return (
-    <AppShell>
       <div className="max-w-4xl mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Daily Report - {report.report_date}</h1>
           <button
-            onClick={() => navigate('/reports/daily')}
+            onClick={() => navigate('/app/reports/daily')}
             className="text-gray-600 hover:text-gray-900"
           >
             ← Back
@@ -205,7 +203,7 @@ const DailyReportDetailPage = () => {
           {report.status === 'draft' && (
             <>
               <button
-                onClick={() => navigate(`/reports/daily/${id}/edit`)}
+                onClick={() => navigate(`/app/reports/daily/${id}/edit`)}
                 className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
               >
                 Edit
@@ -233,7 +231,7 @@ const DailyReportDetailPage = () => {
           {report.status === 'needs_revision' && (
             <>
               <button
-                onClick={() => navigate(`/reports/daily/${id}/edit`)}
+                onClick={() => navigate(`/app/reports/daily/${id}/edit`)}
                 className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
               >
                 Edit for Revision
@@ -281,7 +279,6 @@ const DailyReportDetailPage = () => {
           </div>
         )}
       </div>
-    </AppShell>
   );
 };
 

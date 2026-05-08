@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import Badge from '../../components/ui/Badge';
+import PageHeader from '../../components/ui/PageHeader';
+import Surface from '../../components/ui/Surface';
+import { FieldShell, TextField } from '../../components/ui/TextField';
 
 const SystemSettingsPage = () => {
   const [loading, setLoading] = useState(true);
@@ -23,9 +27,9 @@ const SystemSettingsPage = () => {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target as HTMLInputElement;
-    setSettings((s: any) => ({ ...s, [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value }));
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = event.target as HTMLInputElement;
+    setSettings((current: any) => ({ ...current, [name]: type === 'checkbox' ? (event.target as HTMLInputElement).checked : value }));
   };
 
   const handleSave = async () => {
@@ -41,31 +45,42 @@ const SystemSettingsPage = () => {
     }
   };
 
-  if (loading) return <div className="text-center py-8">Loading...</div>;
+  if (loading) return <div className="py-8 text-center text-slate-500 dark:text-slate-400">Loading...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">System Settings</h1>
-      <div className="bg-white rounded-lg shadow p-6 space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Site Name</label>
-          <input name="site_name" value={settings.site_name || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded" />
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Administration"
+        title="System Settings"
+        description="Keep core platform settings grouped in a cleaner, more approachable admin screen."
+        actions={<Badge tone="info">Admin only</Badge>}
+      />
+
+      <Surface className="p-6">
+        <div className="grid gap-5 lg:grid-cols-2">
+          <FieldShell label="Site name">
+            <TextField name="site_name" value={settings.site_name || ''} onChange={handleChange} />
+          </FieldShell>
+
+          <FieldShell label="Default required hours">
+            <TextField name="default_required_hours" type="number" value={settings.default_required_hours || ''} onChange={handleChange} />
+          </FieldShell>
+
+          <label className="flex items-start gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/60 lg:col-span-2">
+            <input id="allow_registration" name="allow_registration" type="checkbox" checked={!!settings.allow_registration} onChange={handleChange} className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+            <span>
+              <span className="block text-sm font-semibold text-slate-900 dark:text-slate-50">Allow new user registration</span>
+              <span className="mt-1 block text-sm text-slate-500 dark:text-slate-400">Enable or disable public account creation.</span>
+            </span>
+          </label>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Default Required Hours</label>
-          <input name="default_required_hours" type="number" value={settings.default_required_hours || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded" />
+        <div className="mt-6 flex justify-end">
+          <button onClick={handleSave} disabled={saving} className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
+            {saving ? 'Saving...' : 'Save Settings'}
+          </button>
         </div>
-
-        <div className="flex items-center gap-3">
-          <input id="allow_registration" name="allow_registration" type="checkbox" checked={!!settings.allow_registration} onChange={handleChange} />
-          <label htmlFor="allow_registration" className="text-sm">Allow new user registration</label>
-        </div>
-
-        <div className="flex gap-3">
-          <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-blue-600 text-white rounded">{saving ? 'Saving...' : 'Save Settings'}</button>
-        </div>
-      </div>
+      </Surface>
     </div>
   );
 };

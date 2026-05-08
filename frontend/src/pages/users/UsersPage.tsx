@@ -1,7 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../auth/AuthContext';
+import Badge from '../../components/ui/Badge';
+import EmptyState from '../../components/ui/EmptyState';
+import PageHeader from '../../components/ui/PageHeader';
+import Surface from '../../components/ui/Surface';
+import { TextField } from '../../components/ui/TextField';
 import { hasRole } from '../../utils/roleHelper';
 
 interface User {
@@ -16,6 +21,7 @@ interface User {
 const UsersPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const { user } = useAuth();
   const canManage = hasRole(user, ['admin', 'coordinator']);
@@ -38,64 +44,91 @@ const UsersPage = () => {
     }
   };
 
+  const filteredUsers = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return users;
+
+    return users.filter((entry) =>
+      [entry.name, entry.email, entry.role, entry.status].some((value) => value.toLowerCase().includes(query)),
+    );
+  }, [search, users]);
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Users</h1>
-        {canManage && (
-          <button
-            onClick={() => navigate('/app/users/create')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            + New User
-          </button>
-        )}
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="User management"
+        title="Users"
+        description="Browse accounts, review status, and jump into edit or detail flows with a cleaner layout."
+        actions={
+          canManage ? (
+            <button
+              onClick={() => navigate('/app/users/create')}
+              className="rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:bg-slate-100"
+            >
+              + New User
+            </button>
+          ) : null
+        }
+      />
+
+      <Surface className="p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+            <Badge tone="info">{filteredUsers.length} users</Badge>
+            <span>{canManage ? 'Editable for administrators' : 'Read-only access'}</span>
+          </div>
+          <div className="w-full lg:max-w-md">
+            <TextField value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by name, email, role, or status" />
+          </div>
+        </div>
+      </Surface>
 
       {loading ? (
-        <div className="text-center py-8">Loading...</div>
-      ) : users.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">No users found.</div>
+        <Surface className="p-10 text-center text-slate-500 dark:text-slate-400">Loading users...</Surface>
+      ) : filteredUsers.length === 0 ? (
+        <EmptyState
+          title="No users found"
+          description="Try a different search or create a new account if you have permission."
+          action={canManage ? <button onClick={() => navigate('/app/users/create')} className="rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white dark:bg-white dark:text-slate-900">Create user</button> : null}
+        />
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Name</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Role</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
-                <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {users.map(u => (
-                <tr key={u.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-semibold text-gray-900">{u.name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{u.email}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600 capitalize">{u.role}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600 capitalize">{u.status}</td>
-                  <td className="px-6 py-4 text-center space-x-2">
-                    <button
-                      onClick={() => navigate(`/app/users/${u.id}`)}
-                      className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      View
-                    </button>
-                    {canManage && (
-                      <button
-                        onClick={() => navigate(`/app/users/${u.id}/edit`)}
-                        className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
-                      >
-                        Edit
-                      </button>
-                    )}
-                  </td>
+        <Surface className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+              <thead className="sticky top-0 bg-slate-50/95 text-left dark:bg-slate-950/95">
+                <tr className="text-xs uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+                  <th className="px-6 py-4">Name</th>
+                  <th className="px-6 py-4">Email</th>
+                  <th className="px-6 py-4">Role</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                {filteredUsers.map((entry) => (
+                  <tr key={entry.id} className="transition hover:bg-slate-50/80 dark:hover:bg-slate-900/50">
+                    <td className="px-6 py-4 text-sm font-semibold text-slate-900 dark:text-slate-50">{entry.name}</td>
+                    <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">{entry.email}</td>
+                    <td className="px-6 py-4"><Badge tone="neutral">{entry.role}</Badge></td>
+                    <td className="px-6 py-4"><Badge tone={entry.status === 'active' ? 'success' : 'warning'}>{entry.status}</Badge></td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-end gap-2">
+                        <button onClick={() => navigate(`/app/users/${entry.id}`)} className="rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
+                          View
+                        </button>
+                        {canManage ? (
+                          <button onClick={() => navigate(`/app/users/${entry.id}/edit`)} className="rounded-2xl bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
+                            Edit
+                          </button>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Surface>
       )}
     </div>
   );

@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../auth/AuthContext';
+import Badge from '../../components/ui/Badge';
+import PageHeader from '../../components/ui/PageHeader';
+import Surface from '../../components/ui/Surface';
+import { FieldShell, TextField } from '../../components/ui/TextField';
 
 interface ProfileData {
   first_name: string;
@@ -16,8 +20,7 @@ interface PasswordData {
 }
 
 const ProfilePage = () => {
-  const { user, login } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
   const [profileData, setProfileData] = useState<ProfileData>({
     first_name: '',
     last_name: '',
@@ -47,29 +50,25 @@ const ProfilePage = () => {
     }
   }, [user]);
 
-  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setProfileData(prev => ({ ...prev, [name]: value }));
+  const handleProfileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setProfileData((current) => ({ ...current, [name]: value }));
   };
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setPasswordData(prev => ({ ...prev, [name]: value }));
+  const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setPasswordData((current) => ({ ...current, [name]: value }));
   };
 
-  const handleProfileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleProfileSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setProfileSubmitting(true);
     setProfileSuccess('');
     setProfileError('');
 
     try {
-      const res = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/auth/profile`, profileData);
+      await axios.put(`${import.meta.env.VITE_API_BASE_URL}/auth/profile`, profileData);
       setProfileSuccess('Profile updated successfully');
-      // Update auth context
-      if (res.data.user && login) {
-        localStorage.setItem('user', JSON.stringify(res.data.user));
-      }
     } catch (error: any) {
       setProfileError(error.response?.data?.message || 'Error updating profile');
     } finally {
@@ -77,8 +76,8 @@ const ProfilePage = () => {
     }
   };
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePasswordSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (passwordData.password !== passwordData.password_confirmation) {
       setPasswordError('Passwords do not match');
       return;
@@ -99,146 +98,95 @@ const ProfilePage = () => {
     }
   };
 
-  if (!user) return <div className="text-center py-8">Loading profile...</div>;
+  if (!user) return <div className="py-8 text-center text-slate-500 dark:text-slate-400">Loading profile...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-8">
-      <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Account"
+        title="My Profile"
+        description="View your identity, update contact details, and change your password in a more focused layout."
+        actions={<Badge tone="info">{user.role?.name || user.role}</Badge>}
+      />
 
-      {/* Profile Info */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 className="text-2xl font-bold mb-4">Account Information</h2>
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <p className="text-sm text-gray-600">Name</p>
-            <p className="font-semibold">{user.first_name} {user.last_name}</p>
+      <section className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+        <Surface className="p-6">
+          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Account information</div>
+          <div className="mt-6 space-y-4">
+            <div>
+              <div className="text-sm text-slate-500 dark:text-slate-400">Name</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-50">{user.first_name} {user.last_name}</div>
+            </div>
+            <div>
+              <div className="text-sm text-slate-500 dark:text-slate-400">Email</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-50">{user.email}</div>
+            </div>
+            <div>
+              <div className="text-sm text-slate-500 dark:text-slate-400">Organization</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-50">{user.organization?.name || 'No organization assigned'}</div>
+            </div>
+            <div>
+              <div className="text-sm text-slate-500 dark:text-slate-400">Phone</div>
+              <div className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-50">{user.phone || 'Not provided'}</div>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-gray-600">Email</p>
-            <p className="font-semibold">{user.email}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Role</p>
-            <p className="font-semibold capitalize">{user.role?.name || user.role}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Organization</p>
-            <p className="font-semibold">{user.organization?.name || '-'}</p>
-          </div>
+        </Surface>
+
+        <div className="space-y-6">
+          <Surface className="p-6">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-50">Edit Profile</h2>
+              <Badge tone="neutral">Profile</Badge>
+            </div>
+            {profileSuccess ? <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-200">{profileSuccess}</div> : null}
+            {profileError ? <div className="mt-4 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-200">{profileError}</div> : null}
+
+            <form onSubmit={handleProfileSubmit} className="mt-6 space-y-5">
+              <div className="grid gap-4 md:grid-cols-2">
+                <FieldShell label="First name">
+                  <TextField name="first_name" value={profileData.first_name} onChange={handleProfileChange} />
+                </FieldShell>
+                <FieldShell label="Last name">
+                  <TextField name="last_name" value={profileData.last_name} onChange={handleProfileChange} />
+                </FieldShell>
+              </div>
+              <FieldShell label="Email">
+                <TextField name="email" type="email" value={profileData.email} onChange={handleProfileChange} />
+              </FieldShell>
+              <FieldShell label="Phone">
+                <TextField name="phone" value={profileData.phone} onChange={handleProfileChange} />
+              </FieldShell>
+              <button type="submit" disabled={profileSubmitting} className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
+                {profileSubmitting ? 'Saving...' : 'Save Profile'}
+              </button>
+            </form>
+          </Surface>
+
+          <Surface className="p-6">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-50">Change Password</h2>
+              <Badge tone="warning">Security</Badge>
+            </div>
+            {passwordSuccess ? <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-200">{passwordSuccess}</div> : null}
+            {passwordError ? <div className="mt-4 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-200">{passwordError}</div> : null}
+
+            <form onSubmit={handlePasswordSubmit} className="mt-6 space-y-5">
+              <FieldShell label="Current password">
+                <TextField name="current_password" type="password" value={passwordData.current_password} onChange={handlePasswordChange} required />
+              </FieldShell>
+              <FieldShell label="New password">
+                <TextField name="password" type="password" value={passwordData.password} onChange={handlePasswordChange} required />
+              </FieldShell>
+              <FieldShell label="Confirm new password">
+                <TextField name="password_confirmation" type="password" value={passwordData.password_confirmation} onChange={handlePasswordChange} required />
+              </FieldShell>
+              <button type="submit" disabled={passwordSubmitting} className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
+                {passwordSubmitting ? 'Updating...' : 'Change Password'}
+              </button>
+            </form>
+          </Surface>
         </div>
-      </div>
-
-      {/* Edit Profile Form */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold mb-4">Edit Profile</h2>
-        {profileSuccess && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">{profileSuccess}</div>}
-        {profileError && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{profileError}</div>}
-
-        <form onSubmit={handleProfileSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-              <input
-                name="first_name"
-                value={profileData.first_name}
-                onChange={handleProfileChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-              <input
-                name="last_name"
-                value={profileData.last_name}
-                onChange={handleProfileChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              name="email"
-              type="email"
-              value={profileData.email}
-              onChange={handleProfileChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-            <input
-              name="phone"
-              value={profileData.phone}
-              onChange={handleProfileChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={profileSubmitting}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            {profileSubmitting ? 'Saving...' : 'Save Profile'}
-          </button>
-        </form>
-      </div>
-
-      {/* Change Password Form */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold mb-4">Change Password</h2>
-        {passwordSuccess && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">{passwordSuccess}</div>}
-        {passwordError && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{passwordError}</div>}
-
-        <form onSubmit={handlePasswordSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Current Password *</label>
-            <input
-              name="current_password"
-              type="password"
-              value={passwordData.current_password}
-              onChange={handlePasswordChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">New Password *</label>
-            <input
-              name="password"
-              type="password"
-              value={passwordData.password}
-              onChange={handlePasswordChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password *</label>
-            <input
-              name="password_confirmation"
-              type="password"
-              value={passwordData.password_confirmation}
-              onChange={handlePasswordChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={passwordSubmitting}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            {passwordSubmitting ? 'Changing...' : 'Change Password'}
-          </button>
-        </form>
-      </div>
+      </section>
     </div>
   );
 };
