@@ -19,8 +19,11 @@ const AssignmentDetailPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!id) return navigate('/app/assignments');
-    fetchAssignment();
+    if (!id) {
+      navigate('/app/assignments');
+      return;
+    }
+    fetchAssignment().catch(() => {});
   }, [id]);
 
   const fetchAssignment = async () => {

@@ -3,6 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../auth/AuthContext';
 import { hasRole } from '../../utils/roleHelper';
+import PageHeader from '../../components/ui/PageHeader';
+import Surface from '../../components/ui/Surface';
+import { FieldShell } from '../../components/ui/TextField';
 
 interface FormData {
   user_id: number | '';
@@ -103,57 +106,117 @@ const AssignmentFormPage = () => {
     }
   };
 
-  if (loading) return <div className="text-center py-8">Loading...</div>;
+  if (loading) return (
+    <div className="flex items-center justify-center py-12">
+      <div className="text-center">
+        <div className="w-8 h-8 border-3 border-ink-200 border-t-ink-900 rounded-full animate-spin mx-auto mb-2"></div>
+        <p className="text-sm text-ink-600">Loading...</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">{id ? 'Edit' : 'Create'} Assignment</h1>
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6">
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Trainee *</label>
-          <select name="user_id" value={formData.user_id} onChange={handleChange} className="w-full px-3 py-2 border rounded" required>
-            <option value="">Select trainee</option>
-            {users.map(u => <option key={u.id} value={u.id}>{u.name} — {u.email}</option>)}
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Program *</label>
-          <select name="program_id" value={formData.program_id} onChange={handleChange} className="w-full px-3 py-2 border rounded" required>
-            <option value="">Select program</option>
-            {programs.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-        </div>
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Supervisor</label>
-            <select name="supervisor_id" value={formData.supervisor_id} onChange={handleChange} className="w-full px-3 py-2 border rounded">
-              <option value="">Select supervisor</option>
-              {users.filter(u => u.role === 'supervisor' || u.role === 'admin').map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow={id ? 'Manage' : 'Add'}
+        title={`${id ? 'Edit' : 'Create'} Assignment`}
+        description={id ? 'Update assignment details' : 'Create a new assignment'}
+      />
+      
+      <Surface className="p-6 max-w-2xl">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <FieldShell label="Trainee">
+            <select
+              name="user_id"
+              value={formData.user_id}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-white"
+              required
+            >
+              <option value="">Select trainee</option>
+              {users.map(u => <option key={u.id} value={u.id}>{u.name} — {u.email}</option>)}
             </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Coordinator</label>
-            <select name="coordinator_id" value={formData.coordinator_id} onChange={handleChange} className="w-full px-3 py-2 border rounded">
-              <option value="">Select coordinator</option>
-              {users.filter(u => u.role === 'coordinator' || u.role === 'admin').map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+          </FieldShell>
+
+          <FieldShell label="Program">
+            <select
+              name="program_id"
+              value={formData.program_id}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-white"
+              required
+            >
+              <option value="">Select program</option>
+              {programs.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
+          </FieldShell>
+
+          <div className="grid grid-cols-2 gap-4">
+            <FieldShell label="Supervisor">
+              <select
+                name="supervisor_id"
+                value={formData.supervisor_id}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-white"
+              >
+                <option value="">Select supervisor</option>
+                {users.filter(u => u.role === 'supervisor' || u.role === 'admin').map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+              </select>
+            </FieldShell>
+
+            <FieldShell label="Coordinator">
+              <select
+                name="coordinator_id"
+                value={formData.coordinator_id}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-white"
+              >
+                <option value="">Select coordinator</option>
+                {users.filter(u => u.role === 'coordinator' || u.role === 'admin').map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+              </select>
+            </FieldShell>
           </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-            <input type="date" name="start_date" value={formData.start_date} onChange={handleChange} className="w-full px-3 py-2 border rounded" />
+
+          <div className="grid grid-cols-2 gap-4">
+            <FieldShell label="Start Date">
+              <input
+                type="date"
+                name="start_date"
+                value={formData.start_date}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-white"
+              />
+            </FieldShell>
+
+            <FieldShell label="End Date">
+              <input
+                type="date"
+                name="end_date"
+                value={formData.end_date}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-white"
+              />
+            </FieldShell>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-            <input type="date" name="end_date" value={formData.end_date} onChange={handleChange} className="w-full px-3 py-2 border rounded" />
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 px-6 py-2 bg-ink-900 text-white rounded-lg hover:bg-ink-800 disabled:opacity-50 transition-colors"
+            >
+              {submitting ? 'Saving...' : 'Save Assignment'}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/app/assignments')}
+              className="flex-1 px-6 py-2 border border-ink-200 text-ink-900 rounded-lg hover:bg-ink-50 dark:text-white dark:border-ink-700 dark:hover:bg-ink-800 transition-colors"
+            >
+              Cancel
+            </button>
           </div>
-        </div>
-        <div className="flex gap-3">
-          <button type="submit" disabled={submitting} className="flex-1 px-6 py-2 bg-blue-600 text-white rounded">{submitting ? 'Saving...' : 'Save Assignment'}</button>
-          <button type="button" onClick={() => navigate('/app/assignments')} className="flex-1 px-6 py-2 bg-gray-300 rounded">Cancel</button>
-        </div>
-      </form>
+        </form>
+      </Surface>
     </div>
   );
 };

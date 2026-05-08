@@ -18,8 +18,11 @@ const UserDetailPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!id) return navigate('/app/users');
-    fetchUser();
+    if (!id) {
+      navigate('/app/users');
+      return;
+    }
+    fetchUser().catch(() => {});
   }, [id]);
 
   const fetchUser = async () => {

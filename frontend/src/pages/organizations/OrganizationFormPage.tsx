@@ -62,7 +62,7 @@ const OrganizationFormPage = () => {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -121,7 +121,7 @@ const OrganizationFormPage = () => {
             <select
               name="type"
               value={formData.type}
-              onChange={handleChange}
+              onChange={handleChange as any}
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
@@ -139,7 +139,7 @@ const OrganizationFormPage = () => {
             <select
               name="status"
               value={formData.status}
-              onChange={handleChange}
+              onChange={handleChange as any}
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >

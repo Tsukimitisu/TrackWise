@@ -18,8 +18,11 @@ const ProgramDetailPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!id) return navigate('/app/programs');
-    fetchProgram();
+    if (!id) {
+      navigate('/app/programs');
+      return;
+    }
+    fetchProgram().catch(() => {});
   }, [id]);
 
   const fetchProgram = async () => {
