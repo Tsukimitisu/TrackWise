@@ -3,6 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../auth/AuthContext';
 import { hasRole } from '../../utils/roleHelper';
+import PageHeader from '../../components/ui/PageHeader';
+import Surface from '../../components/ui/Surface';
+import { FieldShell, TextAreaField } from '../../components/ui/TextField';
 
 interface FormData {
   name: string;
@@ -107,91 +110,129 @@ const ProgramFormPage = () => {
     }
   };
 
-  if (loading) return <div className="text-center py-8">Loading...</div>;
+  if (loading) return (
+    <div className="flex items-center justify-center py-12">
+      <div className="text-center">
+        <div className="w-8 h-8 border-3 border-ink-200 border-t-ink-900 rounded-full animate-spin mx-auto mb-2"></div>
+        <p className="text-sm text-ink-600">Loading...</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">{id ? 'Edit' : 'Create'} Program</h1>
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6">
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Program Name *</label>
-          <input
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded"
-            required
-          />
-        </div>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow={id ? 'Manage' : 'Add'}
+        title={`${id ? 'Edit' : 'Create'} Program`}
+        description={id ? 'Update program information' : 'Create a new training program'}
+      />
+      
+      <Surface className="p-6 max-w-2xl">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <FieldShell label="Program Name">
+            <input
+              name="name"
+              type="text"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-white"
+              required
+            />
+          </FieldShell>
 
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Required Hours *</label>
-          <input
-            name="required_hours"
-            type="number"
-            value={formData.required_hours}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded"
-            required
-          />
-        </div>
+          <FieldShell label="Required Hours">
+            <input
+              name="required_hours"
+              type="number"
+              value={formData.required_hours}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-white"
+              required
+            />
+          </FieldShell>
 
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Organization *</label>
-          <select name="organization_id" value={organizationId} onChange={(e) => setOrganizationId(e.target.value === '' ? '' : Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 rounded" required>
-            <option value="">Select organization</option>
-            {organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
-          </select>
-        </div>
+          <FieldShell label="Organization">
+            <select
+              value={organizationId}
+              onChange={(e) => setOrganizationId(e.target.value === '' ? '' : Number(e.target.value))}
+              className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-white"
+              required
+            >
+              <option value="">Select organization</option>
+              {organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+            </select>
+          </FieldShell>
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" />
+          <div className="grid grid-cols-2 gap-4">
+            <FieldShell label="Start Date">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-white"
+              />
+            </FieldShell>
+
+            <FieldShell label="End Date">
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-white"
+              />
+            </FieldShell>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded" />
+
+          <FieldShell label="Report Frequency">
+            <select
+              value={reportFrequency}
+              onChange={(e) => setReportFrequency(e.target.value)}
+              className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-white"
+            >
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </FieldShell>
+
+          <FieldShell label="Description">
+            <TextAreaField
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+            />
+          </FieldShell>
+
+          <FieldShell label="Status">
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ink-900 dark:bg-ink-900 dark:border-ink-800 dark:text-white"
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </FieldShell>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 px-6 py-2 bg-ink-900 text-white rounded-lg hover:bg-ink-800 disabled:opacity-50 transition-colors"
+            >
+              {submitting ? 'Saving...' : 'Save Program'}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/app/programs')}
+              className="flex-1 px-6 py-2 border border-ink-200 text-ink-900 rounded-lg hover:bg-ink-50 dark:text-white dark:border-ink-700 dark:hover:bg-ink-800 transition-colors"
+            >
+              Cancel
+            </button>
           </div>
-        </div>
-
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Report Frequency</label>
-          <select value={reportFrequency} onChange={(e) => setReportFrequency(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded">
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-          </select>
-        </div>
-
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded"
-          />
-        </div>
-
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-          <select name="status" value={formData.status} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-
-        <div className="flex gap-3">
-          <button type="submit" disabled={submitting} className="flex-1 px-6 py-2 bg-blue-600 text-white rounded">
-            {submitting ? 'Saving...' : 'Save Program'}
-          </button>
-          <button type="button" onClick={() => navigate('/app/programs')} className="flex-1 px-6 py-2 bg-gray-300 rounded">
-            Cancel
-          </button>
-        </div>
-      </form>
+        </form>
+      </Surface>
     </div>
   );
 };
