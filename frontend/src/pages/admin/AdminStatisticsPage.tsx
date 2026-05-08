@@ -80,6 +80,33 @@ const AdminStatisticsPage = () => {
   const [health, setHealth] = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const downloadSnapshot = () => {
+    if (!overview || !userActivity || !reporting || !organizations || !programs || !health) return;
+
+    const snapshot = {
+      exported_at: new Date().toISOString(),
+      overview,
+      userActivity,
+      reporting,
+      organizations,
+      programs,
+      health,
+    };
+
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `trackwise-admin-statistics-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const maxRoleCount = Math.max(...Object.values(overview?.users.by_role ?? { empty: 1 }), 1);
+  const maxWeeklyReports = Math.max(...(reporting?.reports_last_week.map((item) => item.count) ?? [1]), 1);
+
   useEffect(() => {
     if (!canView) {
       navigate('/app');
@@ -129,11 +156,31 @@ const AdminStatisticsPage = () => {
   return (
     <div className="mx-auto max-w-7xl space-y-8 p-6">
       <div className="rounded-[2rem] bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-900 p-8 text-white shadow-xl">
-        <p className="text-sm uppercase tracking-[0.3em] text-white/60">Admin Statistics</p>
-        <h1 className="mt-3 text-4xl font-black">System Overview</h1>
-        <p className="mt-3 max-w-2xl text-sm text-white/75">
-          A consolidated view of users, programs, reports, assignments, and operational health across TrackWise.
-        </p>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.3em] text-white/60">Admin Statistics</p>
+            <h1 className="mt-3 text-4xl font-black">System Overview</h1>
+            <p className="mt-3 max-w-2xl text-sm text-white/75">
+              A consolidated view of users, programs, reports, assignments, and operational health across TrackWise.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+            >
+              Refresh
+            </button>
+            <button
+              type="button"
+              onClick={downloadSnapshot}
+              className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+            >
+              Download Snapshot
+            </button>
+          </div>
+        </div>
       </div>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -148,9 +195,17 @@ const AdminStatisticsPage = () => {
           <h2 className="text-xl font-bold text-slate-900">Users by Role</h2>
           <div className="mt-4 space-y-3">
             {Object.entries(overview?.users.by_role ?? {}).map(([role, count]) => (
-              <div key={role} className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
-                <span className="text-sm font-medium text-slate-700">{role}</span>
-                <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white">{count}</span>
+              <div key={role} className="rounded-2xl bg-slate-50 px-4 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-medium text-slate-700">{role}</span>
+                  <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white">{count}</span>
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-slate-900 to-indigo-600"
+                    style={{ width: `${Math.max((count / maxRoleCount) * 100, 8)}%` }}
+                  />
+                </div>
               </div>
             ))}
           </div>
@@ -177,6 +232,28 @@ const AdminStatisticsPage = () => {
             <StatCard label="Needs Revision" value={reporting?.needs_revision ?? 0} />
             <StatCard label="Avg Review Delay" value={`${reporting?.avg_submission_time_days ?? 0} days`} />
           </div>
+
+          <div className="mt-6 rounded-2xl bg-slate-50 p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-700">Weekly Report Trend</h3>
+              <span className="text-xs text-slate-500">Last 7 days</span>
+            </div>
+            <div className="mt-4 flex h-48 items-end gap-2">
+              {(reporting?.reports_last_week ?? []).map((entry) => (
+                <div key={entry.date} className="flex flex-1 flex-col items-center gap-2">
+                  <div className="flex h-36 w-full items-end rounded-t-2xl bg-slate-200/60 px-1">
+                    <div
+                      className="w-full rounded-t-2xl bg-gradient-to-t from-indigo-600 to-cyan-400"
+                      style={{ height: `${Math.max((entry.count / maxWeeklyReports) * 100, 8)}%` }}
+                      title={`${entry.date}: ${entry.count}`}
+                    />
+                  </div>
+                  <span className="text-[11px] text-slate-500">{entry.date.slice(5)}</span>
+                  <span className="text-xs font-semibold text-slate-900">{entry.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -193,6 +270,19 @@ const AdminStatisticsPage = () => {
                 <span className="text-sm font-semibold text-slate-900">{item.value}</span>
               </div>
             ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl bg-slate-50 p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-700">Health Score</h3>
+              <span className="text-sm font-bold text-slate-900">{health?.health_score ?? 0}%</span>
+            </div>
+            <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-200">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-lime-400"
+                style={{ width: `${health?.health_score ?? 0}%` }}
+              />
+            </div>
           </div>
         </div>
       </section>
