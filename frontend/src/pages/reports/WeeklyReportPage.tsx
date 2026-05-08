@@ -4,7 +4,6 @@ import axios from 'axios';
 import { useAuth } from '../../auth/AuthContext';
 import AppShell from '../../components/AppShell';
 import { downloadWeeklyReportsCSV } from '../../utils/exportHelper';
-import { downloadWeeklyReportsCSV } from '../../utils/exportHelper';
 
 interface WeeklyReport {
   id: number;
