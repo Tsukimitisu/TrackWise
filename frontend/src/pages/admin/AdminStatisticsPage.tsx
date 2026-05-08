@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
+import { downloadAdminStatisticsPdf } from '../../utils/adminStatisticsExport';
 import { hasRole } from '../../utils/roleHelper';
 
 interface OverviewData {
@@ -178,6 +179,16 @@ const AdminStatisticsPage = () => {
               className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
             >
               Download Snapshot
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (!overview || !userActivity || !reporting || !organizations || !programs || !health) return;
+                downloadAdminStatisticsPdf({ overview, userActivity, reporting, organizations, programs, health });
+              }}
+              className="rounded-2xl bg-emerald-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300"
+            >
+              Download PDF
             </button>
           </div>
         </div>
