@@ -41,6 +41,7 @@ import ProfilePage from './pages/profile/ProfilePage';
 import ProgressDetailPage from './pages/progress/ProgressDetailPage';
 import PrintableReportsPage from './pages/printables/PrintableReportsPage';
 import NotificationsPage from './pages/notifications/NotificationsPage';
+import AdminStatisticsPage from './pages/admin/AdminStatisticsPage';
 import AssignedTraineesPage from './pages/trainees/AssignedTraineesPage';
 import AssignedTraineeDetailPage from './pages/trainees/AssignedTraineeDetailPage';
 
@@ -96,6 +97,7 @@ export default function App() {
             <Route path="reports" element={modulePage('Reports', 'Printable DTR and export-ready summaries.')} />
             <Route path="settings" element={<SystemSettingsPage />} />
             <Route path="analytics" element={<AnalyticsDashboardPage />} />
+            <Route path="admin-statistics" element={<AdminStatisticsPage />} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="progress/:id" element={<ProgressDetailPage />} />
             <Route path="assigned-trainees" element={<AssignedTraineesPage />} />

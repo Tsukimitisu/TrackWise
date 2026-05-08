@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\ApprovalController;
 use App\Http\Controllers\Api\AnalyticsController;
+use App\Http\Controllers\Api\AdminStatisticsController;
 use App\Http\Controllers\Api\ExportController;
 use App\Http\Controllers\Api\DailyReportController;
 use App\Http\Controllers\Api\DocumentController;
@@ -113,6 +114,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/analytics/dashboard', [AnalyticsController::class, 'dashboard']);
     Route::get('/analytics/reports', [AnalyticsController::class, 'reportStats']);
     Route::get('/analytics/assignments', [AnalyticsController::class, 'assignmentStats']);
+
+    // Admin statistics
+    Route::middleware('role:admin,coordinator')->group(function () {
+        Route::get('/admin/statistics/overview', [AdminStatisticsController::class, 'systemOverview']);
+        Route::get('/admin/statistics/users', [AdminStatisticsController::class, 'userActivityStats']);
+        Route::get('/admin/statistics/reports', [AdminStatisticsController::class, 'reportingStats']);
+        Route::get('/admin/statistics/organizations', [AdminStatisticsController::class, 'organizationStats']);
+        Route::get('/admin/statistics/programs', [AdminStatisticsController::class, 'programStats']);
+        Route::get('/admin/statistics/health', [AdminStatisticsController::class, 'systemHealth']);
+    });
 
     // Exports
     Route::get('/export/daily-reports', [ExportController::class, 'exportDailyReports']);

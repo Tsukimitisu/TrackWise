@@ -14,6 +14,7 @@ const roleNav: Record<RoleName, NavItem[]> = {
   'Super Admin': [
     ...commonItems,
     { label: 'Analytics', to: '/app/analytics' },
+    { label: 'Admin Statistics', to: '/app/admin-statistics' },
     { label: 'Organizations', to: '/app/organizations' },
     { label: 'Users', to: '/app/users' },
     { label: 'Programs', to: '/app/programs' },
@@ -24,6 +25,7 @@ const roleNav: Record<RoleName, NavItem[]> = {
   'Organization Admin': [
     ...commonItems,
     { label: 'Analytics', to: '/app/analytics' },
+    { label: 'Admin Statistics', to: '/app/admin-statistics' },
     { label: 'Manage Users', to: '/app/users' },
     { label: 'Manage Programs', to: '/app/programs' },
     { label: 'Assignments', to: '/app/assignments' },
@@ -36,6 +38,7 @@ const roleNav: Record<RoleName, NavItem[]> = {
   Coordinator: [
     ...commonItems,
     { label: 'Analytics', to: '/app/analytics' },
+    { label: 'Admin Statistics', to: '/app/admin-statistics' },
     { label: 'Assigned Trainees', to: '/app/assigned-trainees' },
     { label: 'DTR Monitoring', to: '/app/attendance' },
     { label: 'Daily Reports', to: '/app/reports/daily' },
