@@ -29,13 +29,15 @@ interface UserActivityData {
 }
 
 interface ReportingData {
+  range_days: number;
+  range_label: string;
   total: number;
   submitted: number;
   approved: number;
   rejected: number;
   needs_revision: number;
   avg_submission_time_days: number;
-  reports_last_week: Array<{ date: string; count: number }>;
+  reports_last_period: Array<{ date: string; count: number }>;
   reports_by_program: Array<{ name: string; report_count: number }>;
 }
 

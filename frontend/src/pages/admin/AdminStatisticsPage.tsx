@@ -33,13 +33,15 @@ interface UserActivityData {
 }
 
 interface ReportingData {
+  range_days: number;
+  range_label: string;
   total: number;
   submitted: number;
   approved: number;
   rejected: number;
   needs_revision: number;
   avg_submission_time_days: number;
-  reports_last_week: Array<{ date: string; count: number }>;
+  reports_last_period: Array<{ date: string; count: number }>;
   reports_by_program: Array<{ name: string; report_count: number }>;
 }
 
@@ -80,6 +82,7 @@ const AdminStatisticsPage = () => {
   const [programs, setPrograms] = useState<ProgramData | null>(null);
   const [health, setHealth] = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reportRangeDays, setReportRangeDays] = useState(7);
 
   const downloadSnapshot = () => {
     if (!overview || !userActivity || !reporting || !organizations || !programs || !health) return;
@@ -106,7 +109,7 @@ const AdminStatisticsPage = () => {
   };
 
   const maxRoleCount = Math.max(...Object.values(overview?.users.by_role ?? { empty: 1 }), 1);
-  const maxWeeklyReports = Math.max(...(reporting?.reports_last_week.map((item) => item.count) ?? [1]), 1);
+  const maxWeeklyReports = Math.max(...(reporting?.reports_last_period.map((item) => item.count) ?? [1]), 1);
 
   useEffect(() => {
     if (!canView) {
@@ -120,7 +123,7 @@ const AdminStatisticsPage = () => {
         const [overviewRes, usersRes, reportingRes, orgRes, programRes, healthRes] = await Promise.all([
           axios.get(`${import.meta.env.VITE_API_BASE_URL}/admin/statistics/overview`),
           axios.get(`${import.meta.env.VITE_API_BASE_URL}/admin/statistics/users`),
-          axios.get(`${import.meta.env.VITE_API_BASE_URL}/admin/statistics/reports`),
+          axios.get(`${import.meta.env.VITE_API_BASE_URL}/admin/statistics/reports`, { params: { days: reportRangeDays } }),
           axios.get(`${import.meta.env.VITE_API_BASE_URL}/admin/statistics/organizations`),
           axios.get(`${import.meta.env.VITE_API_BASE_URL}/admin/statistics/programs`),
           axios.get(`${import.meta.env.VITE_API_BASE_URL}/admin/statistics/health`),
@@ -140,7 +143,7 @@ const AdminStatisticsPage = () => {
     };
 
     fetchStats();
-  }, [canView, navigate]);
+  }, [canView, navigate, reportRangeDays]);
 
   const StatCard = ({ label, value, detail }: { label: string; value: string | number; detail?: string }) => (
     <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -166,6 +169,15 @@ const AdminStatisticsPage = () => {
             </p>
           </div>
           <div className="flex gap-3">
+            <select
+              value={reportRangeDays}
+              onChange={(event) => setReportRangeDays(Number(event.target.value))}
+              className="rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white outline-none transition hover:bg-white/20"
+            >
+              <option value={7} className="text-slate-900">Last 7 days</option>
+              <option value={30} className="text-slate-900">Last 30 days</option>
+              <option value={90} className="text-slate-900">Last 90 days</option>
+            </select>
             <button
               type="button"
               onClick={() => window.location.reload()}
@@ -235,6 +247,7 @@ const AdminStatisticsPage = () => {
       <section className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-xl font-bold text-slate-900">Reporting Activity</h2>
+          <p className="mt-1 text-sm text-slate-500">{reporting?.range_label ?? 'Last 7 Days'}</p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <StatCard label="Total Reports" value={reporting?.total ?? 0} />
             <StatCard label="Submitted" value={reporting?.submitted ?? 0} />
@@ -246,11 +259,11 @@ const AdminStatisticsPage = () => {
 
           <div className="mt-6 rounded-2xl bg-slate-50 p-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-700">Weekly Report Trend</h3>
-              <span className="text-xs text-slate-500">Last 7 days</span>
+              <h3 className="text-sm font-semibold text-slate-700">Report Trend</h3>
+              <span className="text-xs text-slate-500">{reporting?.range_label ?? 'Last 7 Days'}</span>
             </div>
             <div className="mt-4 flex h-48 items-end gap-2">
-              {(reporting?.reports_last_week ?? []).map((entry) => (
+              {(reporting?.reports_last_period ?? []).map((entry) => (
                 <div key={entry.date} className="flex flex-1 flex-col items-center gap-2">
                   <div className="flex h-36 w-full items-end rounded-t-2xl bg-slate-200/60 px-1">
                     <div

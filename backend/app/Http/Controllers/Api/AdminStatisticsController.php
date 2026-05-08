@@ -10,6 +10,7 @@ use App\Models\UserProgram;
 use App\Models\DailyReport;
 use App\Models\WeeklyReport;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class AdminStatisticsController extends Controller
 {
@@ -75,30 +76,34 @@ class AdminStatisticsController extends Controller
         ]);
     }
 
-    public function reportingStats(): JsonResponse
+    public function reportingStats(Request $request): JsonResponse
     {
-        $totalReports = DailyReport::count() + WeeklyReport::count();
-        $submittedReports = DailyReport::where('status', 'submitted')->count() + 
-                           WeeklyReport::where('status', 'submitted')->count();
-        $approvedReports = DailyReport::where('status', 'approved')->count() + 
-                          WeeklyReport::where('status', 'approved')->count();
-        $rejectedReports = DailyReport::where('status', 'rejected')->count() + 
-                          WeeklyReport::where('status', 'rejected')->count();
-        $needsRevisionReports = DailyReport::where('status', 'needs_revision')->count() + 
-                               WeeklyReport::where('status', 'needs_revision')->count();
+        $days = max(1, (int) $request->integer('days', 7));
+        $rangeStart = now()->subDays($days - 1)->startOfDay();
 
-        $avgReportTime = DailyReport::whereNotNull('submitted_at')
+        $totalReports = DailyReport::where('created_at', '>=', $rangeStart)->count() + WeeklyReport::where('created_at', '>=', $rangeStart)->count();
+        $submittedReports = DailyReport::where('created_at', '>=', $rangeStart)->where('status', 'submitted')->count() + 
+                           WeeklyReport::where('created_at', '>=', $rangeStart)->where('status', 'submitted')->count();
+        $approvedReports = DailyReport::where('created_at', '>=', $rangeStart)->where('status', 'approved')->count() + 
+                          WeeklyReport::where('created_at', '>=', $rangeStart)->where('status', 'approved')->count();
+        $rejectedReports = DailyReport::where('created_at', '>=', $rangeStart)->where('status', 'rejected')->count() + 
+                          WeeklyReport::where('created_at', '>=', $rangeStart)->where('status', 'rejected')->count();
+        $needsRevisionReports = DailyReport::where('created_at', '>=', $rangeStart)->where('status', 'needs_revision')->count() + 
+                               WeeklyReport::where('created_at', '>=', $rangeStart)->where('status', 'needs_revision')->count();
+
+        $avgReportTime = DailyReport::where('created_at', '>=', $rangeStart)->whereNotNull('submitted_at')
             ->selectRaw('AVG(DATEDIFF(submitted_at, created_at)) as avg_days')
             ->first()
             ?->avg_days ?? 0;
 
-        $dailyReportsLastWeek = DailyReport::where('created_at', '>=', now()->subDays(7))
+        $dailyReportsLastPeriod = DailyReport::where('created_at', '>=', $rangeStart)
             ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
             ->groupBy('date')
             ->orderBy('date')
             ->get();
 
-        $reportsByProgram = DailyReport::join('user_programs', 'daily_reports.user_program_id', '=', 'user_programs.id')
+        $reportsByProgram = DailyReport::where('daily_reports.created_at', '>=', $rangeStart)
+            ->join('user_programs', 'daily_reports.user_program_id', '=', 'user_programs.id')
             ->join('programs', 'user_programs.program_id', '=', 'programs.id')
             ->selectRaw('programs.name, COUNT(daily_reports.id) as report_count')
             ->groupBy('programs.id', 'programs.name')
@@ -113,7 +118,9 @@ class AdminStatisticsController extends Controller
             'rejected' => $rejectedReports,
             'needs_revision' => $needsRevisionReports,
             'avg_submission_time_days' => round($avgReportTime, 2),
-            'reports_last_week' => $dailyReportsLastWeek,
+            'range_days' => $days,
+            'range_label' => "Last {$days} Days",
+            'reports_last_period' => $dailyReportsLastPeriod,
             'reports_by_program' => $reportsByProgram,
         ]);
     }
