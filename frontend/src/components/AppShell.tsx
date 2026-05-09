@@ -50,24 +50,24 @@ export default function AppShell() {
   }, [user?.first_name, user?.last_name]);
 
   return (
-    <div className="min-h-screen text-black dark:text-white">
-      {mobileOpen ? <button type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} className="fixed inset-0 z-40 bg-black/50 lg:hidden" /> : null}
+    <div className="min-h-screen text-slate-900 dark:text-slate-100">
+      {mobileOpen ? <button type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} className="fixed inset-0 z-40 bg-slate-950/45 lg:hidden" /> : null}
 
       <div className="mx-auto flex min-h-screen max-w-[1720px]">
-        <aside className={`fixed inset-y-0 left-0 z-50 flex w-80 flex-col border-r border-gray-200 bg-white p-4 transition-all dark:border-gray-800 dark:bg-black lg:sticky lg:translate-x-0 ${collapsed ? 'lg:w-24' : 'lg:w-80'} ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-          <div className="flex items-center justify-between gap-3 border-b border-gray-200 pb-4 dark:border-gray-800">
+        <aside className={`fixed inset-y-0 left-0 z-50 flex w-80 flex-col border-r border-slate-200/80 bg-white/90 p-4 backdrop-blur-lg transition-all dark:border-slate-800/80 dark:bg-slate-950/90 lg:sticky lg:translate-x-0 ${collapsed ? 'lg:w-24' : 'lg:w-80'} ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+          <div className="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-4 dark:border-slate-800/80">
             <Link to="/app" className="flex min-w-0 items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-black text-sm font-black text-white">TW</div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-sm font-black text-white dark:bg-slate-100 dark:text-slate-900">TW</div>
               <div className={collapsed ? 'lg:hidden' : 'lg:block'}>
                 <div className="text-lg font-black tracking-tight">TrackWise</div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Work tracking platform</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">Work tracking platform</div>
               </div>
             </Link>
             <div className="flex items-center gap-2">
-              <button type="button" onClick={() => setCollapsed((s) => !s)} className="hidden rounded-2xl border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-100 dark:border-gray-800 dark:bg-black dark:text-gray-300 dark:hover:bg-gray-900 lg:inline-flex" aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+              <button type="button" onClick={() => setCollapsed((s) => !s)} className="hidden rounded-2xl border border-slate-200 bg-white p-2 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 lg:inline-flex" aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
               </button>
-              <button type="button" onClick={() => setMobileOpen(false)} className="rounded-2xl border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-100 dark:border-gray-800 dark:bg-black dark:text-gray-300 dark:hover:bg-gray-900 lg:hidden" aria-label="Close sidebar">
+              <button type="button" onClick={() => setMobileOpen(false)} className="rounded-2xl border border-slate-200 bg-white p-2 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden" aria-label="Close sidebar">
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M6 6 18 18M18 6 6 18" /></svg>
               </button>
             </div>
@@ -78,7 +78,7 @@ export default function AppShell() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={({ isActive }) => `group flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium transition ${isActive ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-900'} ${collapsed ? 'lg:justify-center lg:px-3' : ''}`}
+                className={({ isActive }) => `group flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium transition ${isActive ? 'bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900' : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'} ${collapsed ? 'lg:justify-center lg:px-3' : ''}`}
               >
                 <NavIcon name={item.icon} />
                 <span className={collapsed ? 'lg:hidden' : ''}>{item.label}</span>
@@ -86,42 +86,42 @@ export default function AppShell() {
             ))}
           </nav>
 
-          <div className="mt-4 rounded-[1.5rem] border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900">
+          <div className="mt-4 rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-800/80 dark:bg-slate-900/70">
             <div className={`flex items-center gap-3 ${collapsed ? 'lg:justify-center' : ''}`}>
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-black text-sm font-black text-white">{initials}</div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-sm font-black text-white dark:bg-slate-100 dark:text-slate-900">{initials}</div>
               <div className={collapsed ? 'lg:hidden' : 'min-w-0 flex-1'}>
                 <div className="truncate text-sm font-semibold">{user?.first_name} {user?.last_name}</div>
-                <div className="truncate text-xs text-gray-600 dark:text-gray-400">{user?.role.name}</div>
+                <div className="truncate text-xs text-slate-500 dark:text-slate-400">{user?.role.name}</div>
               </div>
             </div>
             <div className={`mt-4 ${collapsed ? 'lg:hidden' : ''}`}>
-              <button type="button" onClick={clearSession} className="w-full rounded-2xl bg-black px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-200">Logout</button>
+              <button type="button" onClick={clearSession} className="w-full rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200">Logout</button>
             </div>
           </div>
         </aside>
 
         <main className="min-w-0 flex-1 px-4 pb-6 pt-4 sm:px-6 lg:px-8">
           <div className="mb-5 flex items-center justify-between gap-3 lg:hidden">
-            <button type="button" onClick={() => setMobileOpen(true)} className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 dark:border-gray-800 dark:bg-black dark:text-gray-200">
+            <button type="button" onClick={() => setMobileOpen(true)} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
               Menu
             </button>
-            <div className="text-xs uppercase tracking-[0.24em] text-gray-600 dark:text-gray-400">TrackWise</div>
+            <div className="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">TrackWise</div>
           </div>
 
-          <header className="mb-6 rounded-[1.75rem] border border-gray-200 bg-white px-5 py-4 dark:border-gray-800 dark:bg-black">
+          <header className="mb-6 rounded-[1.75rem] border border-slate-200/80 bg-white/90 px-5 py-4 backdrop-blur-sm dark:border-slate-800/80 dark:bg-slate-950/85">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div className="min-w-0">
-                <div className="text-xs uppercase tracking-[0.28em] text-gray-600 dark:text-gray-400">Workspace</div>
+                <div className="text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Workspace</div>
                 <div className="mt-1 flex flex-wrap items-center gap-3">
                   <h2 className="text-xl font-bold tracking-tight">{user?.organization?.name ?? 'TrackWise Workspace'}</h2>
-                  <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-black dark:bg-gray-900 dark:text-white">{user?.role.name}</span>
+                  <span className="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300">{user?.role.name}</span>
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
                 <ThemeToggle />
-                <button type="button" onClick={clearSession} className="inline-flex items-center gap-2 rounded-2xl bg-black px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+                <button type="button" onClick={clearSession} className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200">
                   Logout
                 </button>
               </div>
