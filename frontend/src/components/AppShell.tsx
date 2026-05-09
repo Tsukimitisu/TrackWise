@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { getNavigation, type NavIconName } from '../data/navigation';
@@ -22,11 +22,11 @@ const iconPaths: Record<NavIconName, string[]> = {
   user: ['M12 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4z', 'M5 20a7 7 0 0 1 14 0'],
 };
 
-function NavIcon({ name, active }: { name: NavIconName; active?: boolean }) {
+function NavIcon({ name }: { name: NavIconName }) {
   return (
     <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {iconPaths[name].map((path) => (
-        <path key={path} d={path} className={active ? 'opacity-100' : 'opacity-85'} />
+        <path key={path} d={path} />
       ))}
     </svg>
   );
@@ -49,59 +49,26 @@ export default function AppShell() {
     return `${first}${last}`.toUpperCase();
   }, [user?.first_name, user?.last_name]);
 
-  const desktopWidthClass = collapsed ? 'lg:w-24' : 'lg:w-80';
-  const labelVisibilityClass = collapsed ? 'lg:hidden' : 'lg:block';
-
   return (
     <div className="min-h-screen text-black dark:text-white">
-      {mobileOpen ? (
-        <button
-          type="button"
-          aria-label="Close navigation"
-          onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px] lg:hidden"
-        />
-      ) : null}
+      {mobileOpen ? <button type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} className="fixed inset-0 z-40 bg-black/50 lg:hidden" /> : null}
 
       <div className="mx-auto flex min-h-screen max-w-[1720px]">
-        <aside
-          className={[
-            'fixed inset-y-0 left-0 z-50 flex w-80 flex-col border-r border-gray-200 bg-white p-4 shadow-[0_24px_80px_rgba(0,0,0,0.08)] backdrop-blur-2xl transition-all duration-300 dark:border-gray-800 dark:bg-black lg:sticky lg:translate-x-0 lg:shadow-none',
-            desktopWidthClass,
-            mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-          ].join(' ')}
-        >
+        <aside className={`fixed inset-y-0 left-0 z-50 flex w-80 flex-col border-r border-gray-200 bg-white p-4 transition-all dark:border-gray-800 dark:bg-black lg:sticky lg:translate-x-0 ${collapsed ? 'lg:w-24' : 'lg:w-80'} ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
           <div className="flex items-center justify-between gap-3 border-b border-gray-200 pb-4 dark:border-gray-800">
             <Link to="/app" className="flex min-w-0 items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-black text-sm font-black text-white">
-                TW
-              </div>
-              <div className={labelVisibilityClass}>
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-black text-sm font-black text-white">TW</div>
+              <div className={collapsed ? 'lg:hidden' : 'lg:block'}>
                 <div className="text-lg font-black tracking-tight">TrackWise</div>
                 <div className="text-xs text-gray-600 dark:text-gray-400">Work tracking platform</div>
               </div>
             </Link>
-
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setCollapsed((current) => !current)}
-                className="hidden rounded-2xl border border-gray-200 bg-white p-2 text-gray-700 transition hover:-translate-y-0.5 hover:border-gray-400 hover:text-black dark:border-gray-800 dark:bg-black dark:text-gray-300 dark:hover:border-gray-600 lg:inline-flex"
-                aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              >
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+              <button type="button" onClick={() => setCollapsed((s) => !s)} className="hidden rounded-2xl border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-100 dark:border-gray-800 dark:bg-black dark:text-gray-300 dark:hover:bg-gray-900 lg:inline-flex" aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
               </button>
-              <button
-                type="button"
-                onClick={() => setMobileOpen(false)}
-                className="rounded-2xl border border-gray-200 bg-white p-2 text-gray-700 transition hover:border-gray-400 hover:text-black dark:border-gray-800 dark:bg-black dark:text-gray-300 lg:hidden"
-                aria-label="Close sidebar"
-              >
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M6 6 18 18M18 6 6 18" />
-                </svg>
+              <button type="button" onClick={() => setMobileOpen(false)} className="rounded-2xl border border-gray-200 bg-white p-2 text-gray-700 hover:bg-gray-100 dark:border-gray-800 dark:bg-black dark:text-gray-300 dark:hover:bg-gray-900 lg:hidden" aria-label="Close sidebar">
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M6 6 18 18M18 6 6 18" /></svg>
               </button>
             </div>
           </div>
@@ -111,94 +78,50 @@ export default function AppShell() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={({ isActive }) =>
-                  [
-                    'group flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium transition duration-200',
-                    isActive
-                      ? 'bg-black text-white shadow-subtle'
-                      : 'text-gray-700 hover:-translate-y-0.5 hover:bg-gray-100 hover:text-black dark:text-gray-300 dark:hover:bg-gray-900 dark:hover:text-white',
-                    collapsed ? 'lg:justify-center lg:px-3' : '',
-                  ].join(' ')
-                }
+                className={({ isActive }) => `group flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium transition ${isActive ? 'bg-black text-white' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-900'} ${collapsed ? 'lg:justify-center lg:px-3' : ''}`}
               >
-                {({ isActive }) => (
-                  <>
-                    <NavIcon name={item.icon} active={isActive} />
-                    <span className={collapsed ? 'lg:hidden' : ''}>{item.label}</span>
-                  </>
-                )}
+                <NavIcon name={item.icon} />
+                <span className={collapsed ? 'lg:hidden' : ''}>{item.label}</span>
               </NavLink>
             ))}
           </nav>
 
           <div className="mt-4 rounded-[1.5rem] border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900">
-            <div className={['flex items-center gap-3', collapsed ? 'lg:justify-center' : ''].join(' ')}>
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-black text-sm font-black text-white">
-                {initials}
-              </div>
+            <div className={`flex items-center gap-3 ${collapsed ? 'lg:justify-center' : ''}`}>
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-black text-sm font-black text-white">{initials}</div>
               <div className={collapsed ? 'lg:hidden' : 'min-w-0 flex-1'}>
-                <div className="truncate text-sm font-semibold">
-                  {user?.first_name} {user?.last_name}
-                </div>
+                <div className="truncate text-sm font-semibold">{user?.first_name} {user?.last_name}</div>
                 <div className="truncate text-xs text-gray-600 dark:text-gray-400">{user?.role.name}</div>
               </div>
             </div>
-            <div className={['mt-4 flex items-center justify-between gap-3', collapsed ? 'lg:hidden' : ''].join(' ')}>
-              <button
-                type="button"
-                onClick={clearSession}
-                className="flex-1 rounded-2xl bg-black px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-200"
-              >
-                Logout
-              </button>
+            <div className={`mt-4 ${collapsed ? 'lg:hidden' : ''}`}>
+              <button type="button" onClick={clearSession} className="w-full rounded-2xl bg-black px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-200">Logout</button>
             </div>
           </div>
         </aside>
 
         <main className="min-w-0 flex-1 px-4 pb-6 pt-4 sm:px-6 lg:px-8">
           <div className="mb-5 flex items-center justify-between gap-3 lg:hidden">
-            <button
-              type="button"
-              onClick={() => setMobileOpen(true)}
-              className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm dark:border-gray-800 dark:bg-black dark:text-gray-200"
-            >
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+            <button type="button" onClick={() => setMobileOpen(true)} className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 dark:border-gray-800 dark:bg-black dark:text-gray-200">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
               Menu
             </button>
             <div className="text-xs uppercase tracking-[0.24em] text-gray-600 dark:text-gray-400">TrackWise</div>
           </div>
 
-          <header className="mb-6 rounded-[1.75rem] border border-gray-200 bg-white px-5 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.06)] backdrop-blur-xl dark:border-gray-800 dark:bg-black">
+          <header className="mb-6 rounded-[1.75rem] border border-gray-200 bg-white px-5 py-4 dark:border-gray-800 dark:bg-black">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div className="min-w-0">
                 <div className="text-xs uppercase tracking-[0.28em] text-gray-600 dark:text-gray-400">Workspace</div>
                 <div className="mt-1 flex flex-wrap items-center gap-3">
-                  <h2 className="text-xl font-bold tracking-tight text-black dark:text-white">
-                    {user?.organization?.name ?? 'TrackWise Workspace'}
-                  </h2>
-                  <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-black dark:bg-gray-900 dark:text-white">
-                    {user?.role.name}
-                  </span>
+                  <h2 className="text-xl font-bold tracking-tight">{user?.organization?.name ?? 'TrackWise Workspace'}</h2>
+                  <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-black dark:bg-gray-900 dark:text-white">{user?.role.name}</span>
                 </div>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">
-                  Flexible OJT, internship, and workforce tracking with approvals, reports, and progress monitoring.
-                </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
                 <ThemeToggle />
-                <button
-                  type="button"
-                  onClick={clearSession}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-black px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-200"
-                >
-                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M10 17l5-5-5-5" />
-                    <path d="M15 12H3" />
-                    <path d="M21 4v16" />
-                  </svg>
+                <button type="button" onClick={clearSession} className="inline-flex items-center gap-2 rounded-2xl bg-black px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-200">
                   Logout
                 </button>
               </div>

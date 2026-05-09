@@ -1,18 +1,1 @@
-import Surface from '../components/ui/Surface';
-
-interface ModulePageProps {
-  title: string;
-  description: string;
-}
-
-export default function ModulePage({ title, description }: ModulePageProps) {
-  return (
-    <Surface className="overflow-hidden p-8">
-      <div className="max-w-3xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Module</p>
-        <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-slate-50">{title}</h1>
-        <p className="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-400">{description}</p>
-      </div>
-    </Surface>
-  );
-}
+﻿import Surface from '../components/ui/Surface'; interface ModulePageProps { title: string; description: string; } export default function ModulePage({ title, description }: ModulePageProps) { return ( <Surface className="overflow-hidden p-8"> <div className="max-w-3xl"> <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Module</p> <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-slate-50">{title}</h1> <p className="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-400">{description}</p> </div> </Surface> ); } 

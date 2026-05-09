@@ -1,31 +1,25 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../../auth/AuthContext';
 
 interface DocumentationFile {
   id: number;
-  user_program_id: number;
   file_url: string;
   file_type: string;
   caption?: string;
   taken_at: string;
   latitude?: number;
   longitude?: number;
-  daily_report_id?: number;
-  weekly_report_id?: number;
-  attendance_log_id?: number;
 }
 
-const DocumentationPage = () => {
+export default function DocumentationPage() {
   const [files, setFiles] = useState<DocumentationFile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterType, setFilterType] = useState<string>('');
-  const { user } = useAuth();
+  const [filterType, setFilterType] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchFiles();
+    fetchFiles().catch(() => {});
   }, [filterType]);
 
   const fetchFiles = async () => {
@@ -33,104 +27,66 @@ const DocumentationPage = () => {
       setLoading(true);
       const params: Record<string, string> = {};
       if (filterType) params.file_type = filterType;
-
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/documentation-files`, { params });
-      // Handle Laravel pagination response structure
       const data = response.data.data || response.data;
       setFiles(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Error fetching documentation:', error);
-      setFiles([]);
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this file?')) return;
-
-    try {
-      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/documentation-files/${id}`);
-      setFiles(files.filter(f => f.id !== id));
-    } catch (error) {
-      console.error('Error deleting file:', error);
-    }
+    if (!window.confirm('Delete this file?')) return;
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/documentation-files/${id}`);
+    setFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Documentation & Camera Files</h1>
-        <button
-          onClick={() => navigate('/app/documents/upload')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          + Upload File
+    <div className="mx-auto max-w-6xl p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Documentation</h1>
+        <button onClick={() => navigate('/app/documents/upload')} className="rounded-lg bg-black px-4 py-2 text-white hover:bg-gray-900">
+          Upload
         </button>
       </div>
 
       <div className="mb-4 flex gap-2">
-        {['', 'image/jpeg', 'image/png', 'image/gif', 'image/webp'].map(type => (
+        {['', 'image/jpeg', 'image/png', 'image/gif', 'image/webp'].map((type) => (
           <button
             key={type}
             onClick={() => setFilterType(type)}
-            className={`px-3 py-1 rounded text-sm ${
-              filterType === type
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={`rounded px-3 py-1 text-sm ${filterType === type ? 'bg-black text-white' : 'bg-gray-100 text-black hover:bg-gray-200 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800'}`}
           >
             {!type ? 'All' : type.split('/')[1].toUpperCase()}
           </button>
         ))}
       </div>
 
-      {loading ? (
-        <div className="text-center py-8">Loading...</div>
-      ) : files.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">No documentation files found.</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {files.map(file => (
-            <div key={file.id} className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
-              <div className="aspect-square bg-gray-100 overflow-hidden">
-                <img
-                  src={file.file_url}
-                  alt={file.caption || 'Documentation'}
-                  className="w-full h-full object-cover"
-                />
+      {loading ? <div className="py-8 text-center">Loading...</div> : null}
+      {!loading && files.length === 0 ? <div className="py-8 text-center text-gray-500">No files found.</div> : null}
+
+      {!loading && files.length > 0 ? (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {files.map((file) => (
+            <div key={file.id} className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-black">
+              <div className="aspect-square overflow-hidden bg-gray-100 dark:bg-gray-900">
+                <img src={file.file_url} alt={file.caption || 'Documentation'} className="h-full w-full object-cover" />
               </div>
               <div className="p-4">
-                <p className="text-sm text-gray-500 mb-1">
-                  {new Date(file.taken_at).toLocaleDateString()} {new Date(file.taken_at).toLocaleTimeString()}
-                </p>
-                {file.caption && <p className="text-gray-900 text-sm mb-2 line-clamp-2">{file.caption}</p>}
-                {file.latitude && file.longitude && (
-                  <p className="text-xs text-gray-500 mb-3">
-                    📍 {file.latitude.toFixed(4)}, {file.longitude.toFixed(4)}
-                  </p>
-                )}
+                <p className="mb-1 text-sm text-gray-600 dark:text-gray-400">{new Date(file.taken_at).toLocaleString()}</p>
+                {file.caption ? <p className="mb-2 text-sm">{file.caption}</p> : null}
+                {file.latitude && file.longitude ? (
+                  <p className="mb-3 text-xs text-gray-500">{file.latitude.toFixed(4)}, {file.longitude.toFixed(4)}</p>
+                ) : null}
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => navigate(`/app/documents/${file.id}`)}
-                    className="flex-1 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={() => handleDelete(file.id)}
-                    className="flex-1 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
-                  >
-                    Delete
-                  </button>
+                  <button onClick={() => navigate(`/app/documents/${file.id}`)} className="flex-1 rounded bg-black px-3 py-1 text-sm text-white hover:bg-gray-900">View</button>
+                  <button onClick={() => handleDelete(file.id)} className="flex-1 rounded border border-gray-300 px-3 py-1 text-sm text-black hover:bg-gray-100 dark:border-gray-700 dark:text-white dark:hover:bg-gray-900">Delete</button>
                 </div>
               </div>
             </div>
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
-};
-
-export default DocumentationPage;
+}
