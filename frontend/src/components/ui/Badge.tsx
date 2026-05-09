@@ -6,11 +6,11 @@ interface BadgeProps {
 }
 
 const tones: Record<NonNullable<BadgeProps['tone']>, string> = {
-  neutral: 'bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-200',
-  success: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300',
-  warning: 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300',
-  danger: 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300',
-  info: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300',
+  neutral: 'bg-gray-100 text-black dark:bg-gray-900 dark:text-white',
+  success: 'bg-black text-white dark:bg-white dark:text-black',
+  warning: 'bg-gray-400 text-black dark:bg-gray-600 dark:text-white',
+  danger: 'bg-black text-white dark:bg-white dark:text-black',
+  info: 'bg-gray-300 text-black dark:bg-gray-700 dark:text-white',
 };
 
 export default function Badge({ children, tone = 'neutral' }: BadgeProps) {

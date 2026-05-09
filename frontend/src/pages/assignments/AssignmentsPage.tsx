@@ -60,14 +60,14 @@ const AssignmentsPage = () => {
                   alert('Failed to export data');
                 }
               }}
-              className="px-4 py-2 bg-ink-100 text-ink-900 rounded-lg hover:bg-ink-200 dark:bg-ink-800 dark:text-white dark:hover:bg-ink-700 transition-colors text-sm font-medium"
+              className="px-4 py-2 bg-gray-100 text-black rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 transition-colors text-sm font-medium"
             >
               📥 Export
             </button>
             {canManage && (
               <button
                 onClick={() => navigate('/app/assignments/create')}
-                className="px-4 py-2 bg-ink-900 text-white rounded-lg hover:bg-ink-800 dark:hover:bg-ink-700 transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 dark:hover:bg-gray-800 transition-colors text-sm font-medium"
               >
                 + New
               </button>
@@ -79,8 +79,8 @@ const AssignmentsPage = () => {
       {loading ? (
         <Surface className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="w-8 h-8 border-3 border-ink-200 border-t-ink-900 rounded-full animate-spin mx-auto mb-2"></div>
-            <p className="text-sm text-ink-600">Loading assignments...</p>
+            <div className="w-8 h-8 border-3 border-gray-200 border-t-black rounded-full animate-spin mx-auto mb-2"></div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Loading assignments...</p>
           </div>
         </Surface>
       ) : assignments.length === 0 ? (
@@ -92,34 +92,34 @@ const AssignmentsPage = () => {
         <Surface className="overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-ink-200 dark:border-ink-700 bg-ink-50 dark:bg-ink-900">
-                <th className="px-6 py-3 text-left text-sm font-semibold text-ink-900 dark:text-white">Trainee</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-ink-900 dark:text-white">Program</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-ink-900 dark:text-white">Supervisor</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-ink-900 dark:text-white">Coordinator</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-ink-900 dark:text-white">Dates</th>
-                <th className="px-6 py-3 text-center text-sm font-semibold text-ink-900 dark:text-white">Actions</th>
+              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-semibold text-black dark:text-white">Trainee</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-black dark:text-white">Program</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-black dark:text-white">Supervisor</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-black dark:text-white">Coordinator</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-black dark:text-white">Dates</th>
+                <th className="px-6 py-3 text-center text-sm font-semibold text-black dark:text-white">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink-200 dark:divide-ink-700">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {assignments.map(a => (
-                <tr key={a.id} className="hover:bg-ink-50 dark:hover:bg-ink-800 transition-colors">
-                  <td className="px-6 py-4 text-sm font-medium text-ink-900 dark:text-white">{a.user?.name || '—'}</td>
-                  <td className="px-6 py-4 text-sm text-ink-600 dark:text-ink-300">{a.program?.name || '—'}</td>
-                  <td className="px-6 py-4 text-sm text-ink-600 dark:text-ink-300">{a.supervisor?.name || '—'}</td>
-                  <td className="px-6 py-4 text-sm text-ink-600 dark:text-ink-300">{a.coordinator?.name || '—'}</td>
-                  <td className="px-6 py-4 text-sm text-ink-600 dark:text-ink-300">{a.start_date ? `${a.start_date}${a.end_date ? ' — ' + a.end_date : ''}` : '-'}</td>
+                <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <td className="px-6 py-4 text-sm font-medium text-black dark:text-white">{a.user?.name || '—'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{a.program?.name || '—'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{a.supervisor?.name || '—'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{a.coordinator?.name || '—'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{a.start_date ? `${a.start_date}${a.end_date ? ' — ' + a.end_date : ''}` : '-'}</td>
                   <td className="px-6 py-4 text-center space-x-2">
                     <button
                       onClick={() => navigate(`/app/assignments/${a.id}`)}
-                      className="px-3 py-1 text-sm bg-ink-900 text-white rounded-lg hover:bg-ink-800 transition-colors"
+                      className="px-3 py-1 text-sm bg-black text-white rounded-lg hover:bg-gray-900 transition-colors"
                     >
                       View
                     </button>
                     {canManage && (
                       <button
                         onClick={() => navigate(`/app/assignments/${a.id}/edit`)}
-                        className="px-3 py-1 text-sm bg-ink-100 text-ink-900 rounded-lg hover:bg-ink-200 dark:bg-ink-800 dark:text-white dark:hover:bg-ink-700 transition-colors"
+                        className="px-3 py-1 text-sm bg-gray-100 text-black rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 transition-colors"
                       >
                         Edit
                       </button>
