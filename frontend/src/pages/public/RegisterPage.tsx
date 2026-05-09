@@ -1,2 +1,81 @@
-﻿import { FormEvent, useState } from 'react'; import { Link, useNavigate } from 'react-router-dom'; import client from '../../api/client'; import { useAuth } from '../../auth/AuthContext'; import ThemeToggle from '../../components/ThemeToggle'; import Surface from '../../components/ui/Surface'; import { FieldShell, TextField } from '../../components/ui/TextField'; export default function RegisterPage() { const navigate = useNavigate(); const { setSession } = useAuth(); const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '', password_confirmation: '', role_id: 5, }); const [error, setError] = useState<string | null>(null); const handleSubmit = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setError(null); try { const response = await client.post('/auth/register', form); setSession(response.data.user, response.data.token); navigate('/app', { replace: true }); } catch { setError('Unable to create the account.'); } }; return ( <div className="relative min-h-screen overflow-hidden px-4 py-4 sm:px-6 lg:px-8"> <ThemeToggle /> <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-7xl overflow-hidden rounded-[2.5rem] border border-slate-200/80 bg-white/65 shadow-[0_24px_100px_rgba(15,23,42,0.12)] backdrop-blur-2xl dark:border-slate-800/80 dark:bg-slate-950/70 lg:grid-cols-[0.9fr_1.1fr]"> <section className="relative flex items-center overflow-hidden bg-black px-6 py-12 text-white sm:px-10 lg:px-14 lg:py-16"> <div className="absolute inset-0 " /> <div className="relative max-w-xl"> <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-white/70"> Create workspace access </div> <h1 className="mt-6 text-4xl font-black tracking-tight sm:text-5xl"> Set up a user profile in a clean, guided flow. </h1> <p className="mt-5 text-base leading-8 text-white/75 sm:text-lg"> Create access for students, interns, coordinators, and administrators without overwhelming the form. </p> <div className="mt-8 grid gap-4 sm:grid-cols-2"> <div className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur-md"> <div className="text-sm font-semibold">Fast onboarding</div> <p className="mt-2 text-sm leading-6 text-white/70">Focused fields grouped by account identity and security.</p> </div> <div className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur-md"> <div className="text-sm font-semibold">Role-ready</div> <p className="mt-2 text-sm leading-6 text-white/70">Prepared for the role-based workflows TrackWise already uses.</p> </div> </div> </div> </section> <section className="flex items-center justify-center px-4 py-10 sm:px-8 lg:px-10"> <Surface className="w-full max-w-2xl p-8 sm:p-10"> <div className="inline-flex rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-black dark:bg-gray-200/60 dark:text-black"> Register </div> <h2 className="mt-5 text-3xl font-black tracking-tight text-slate-900 dark:text-slate-50">Create account</h2> <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Add a new TrackWise user with clear, grouped inputs.</p> <form onSubmit={handleSubmit} className="mt-8 space-y-5"> <div className="grid gap-4 md:grid-cols-2"> <FieldShell label="First name"> <TextField type="text" value={form.first_name} onChange={(event) => setForm((current) => ({ ...current, first_name: event.target.value }))} /> </FieldShell> <FieldShell label="Last name"> <TextField type="text" value={form.last_name} onChange={(event) => setForm((current) => ({ ...current, last_name: event.target.value }))} /> </FieldShell> <FieldShell label="Email" helperText="Will be used for login and alerts"> <TextField type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} /> </FieldShell> <FieldShell label="Password"> <TextField type="password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} /> </FieldShell> <div className="md:col-span-2"> <FieldShell label="Confirm password"> <TextField type="password" value={form.password_confirmation} onChange={(event) => setForm((current) => ({ ...current, password_confirmation: event.target.value }))} /> </FieldShell> </div> </div> <input type="hidden" value={form.role_id} readOnly /> {error ? <p className="rounded-2xl border border-gray-300 bg-gray-200 px-4 py-3 text-sm text-black dark:border-gray-300/60 dark:bg-gray-200/40 dark:text-black">{error}</p> : null} <button type="submit" className="w-full rounded-2xl bg-slate-950 px-4 py-3.5 text-sm font-semibold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"> Register </button> </form> <p className="mt-6 text-sm text-slate-600 dark:text-slate-400"> Already have an account? <Link to="/login" className="font-semibold text-ink-700 hover:text-ink-600 dark:text-black">Login</Link> </p> </Surface> </section> </div> </div> ); } 
+﻿import { FormEvent, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import client from '../../api/client';
+import { useAuth } from '../../auth/AuthContext';
+import ThemeToggle from '../../components/ThemeToggle';
+import Surface from '../../components/ui/Surface';
+import { FieldShell, TextField } from '../../components/ui/TextField';
+
+export default function RegisterPage() {
+	const navigate = useNavigate();
+	const { setSession } = useAuth();
+	const [form, setForm] = useState({
+		first_name: '',
+		last_name: '',
+		email: '',
+		password: '',
+		password_confirmation: '',
+		role_id: 5,
+	});
+	const [error, setError] = useState<string | null>(null);
+
+	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		setError(null);
+		try {
+			const response = await client.post('/auth/register', form);
+			setSession(response.data.user, response.data.token);
+			navigate('/app', { replace: true });
+		} catch {
+			setError('Unable to create the account.');
+		}
+	};
+
+	return (
+		<div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
+			<div className="mx-auto flex max-w-xl justify-end">
+				<ThemeToggle />
+			</div>
+			<div className="mx-auto mt-8 max-w-xl">
+				<Surface className="p-6 sm:p-8">
+					<h1 className="text-2xl font-bold tracking-tight">Create account</h1>
+					<form onSubmit={handleSubmit} className="mt-6 space-y-4">
+						<div className="grid gap-4 sm:grid-cols-2">
+							<FieldShell label="First name">
+								<TextField type="text" value={form.first_name} onChange={(event) => setForm((current) => ({ ...current, first_name: event.target.value }))} />
+							</FieldShell>
+							<FieldShell label="Last name">
+								<TextField type="text" value={form.last_name} onChange={(event) => setForm((current) => ({ ...current, last_name: event.target.value }))} />
+							</FieldShell>
+						</div>
+						<FieldShell label="Email">
+							<TextField type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
+						</FieldShell>
+						<FieldShell label="Password">
+							<TextField type="password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} />
+						</FieldShell>
+						<FieldShell label="Confirm password">
+							<TextField
+								type="password"
+								value={form.password_confirmation}
+								onChange={(event) => setForm((current) => ({ ...current, password_confirmation: event.target.value }))}
+							/>
+						</FieldShell>
+						<input type="hidden" value={form.role_id} readOnly />
+						{error ? <p className="rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900">{error}</p> : null}
+						<button type="submit" className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200">
+							Register
+						</button>
+					</form>
+					<p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
+						Already have an account?{' '}
+						<Link to="/login" className="hover:text-slate-900 dark:hover:text-slate-100">
+							Login
+						</Link>
+					</p>
+				</Surface>
+			</div>
+		</div>
+	);
+}
 
