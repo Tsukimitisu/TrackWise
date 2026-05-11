@@ -23,12 +23,12 @@ export default function Card({
   };
 
   const allClasses = [
-    'rounded-2xl border border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100',
-    gradient ? 'bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-800 dark:via-slate-750 dark:to-slate-700' : '',
-    hoverable ? 'transition-all duration-200 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600' : '',
+    'rounded-2xl border border-blue-100 bg-white/75 text-slate-900 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100',
+    gradient ? 'bg-gradient-to-br from-white/90 via-blue-50/80 to-sky-50/80 dark:from-slate-800 dark:via-slate-750 dark:to-slate-700' : '',
+    hoverable ? 'transition-all duration-200 hover:border-blue-200 dark:hover:border-slate-600' : '',
     interactive ? 'cursor-pointer' : '',
     paddingClasses[padding],
-    'shadow-sm',
+    'shadow-none',
     className,
   ]
     .filter(Boolean)
@@ -49,7 +49,7 @@ interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {
 
 export function CardHeader({ title, description, action, className = '', ...props }: CardHeaderProps) {
   return (
-    <div className={['flex items-start justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-700', className].filter(Boolean).join(' ')} {...props}>
+    <div className={['flex items-start justify-between gap-4 pb-4 border-b border-blue-100 dark:border-slate-700', className].filter(Boolean).join(' ')} {...props}>
       <div className="min-w-0 flex-1">
         {title && <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">{title}</h3>}
         {description && <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">{description}</p>}
@@ -69,6 +69,6 @@ interface CardFooterProps extends HTMLAttributes<HTMLDivElement> {}
 
 export function CardFooter({ className = '', ...props }: CardFooterProps) {
   return (
-    <div className={['flex items-center justify-between gap-3 border-t border-slate-200 pt-4 dark:border-slate-700', className].filter(Boolean).join(' ')} {...props} />
+    <div className={['flex items-center justify-between gap-3 border-t border-blue-100 pt-4 dark:border-slate-700', className].filter(Boolean).join(' ')} {...props} />
   );
 }
