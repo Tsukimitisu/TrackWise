@@ -95,7 +95,7 @@ export default function TimeInOutPage() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
         {/* Form Section */}
-        <form onSubmit={submitClockIn} className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm space-y-6">
+        <form onSubmit={submitClockIn} className="rounded-3xl border border-blue-100/80 bg-white/85 p-8 shadow-[0_14px_50px_rgba(59,130,246,0.08)] backdrop-blur-sm space-y-6">
           <div>
             <label className="block text-sm font-semibold text-slate-900 mb-2">
               Assigned Program
@@ -180,7 +180,7 @@ export default function TimeInOutPage() {
             </div>
           )}
 
-          <div className="flex gap-3 pt-4 border-t border-gray-200">
+          <div className="flex gap-3 pt-4 border-t border-blue-100/70">
             <Button type="submit" variant="primary" size="md" fullWidth>
               ⏱️ Time In
             </Button>
@@ -197,7 +197,7 @@ export default function TimeInOutPage() {
         </form>
 
         {/* Recent Logs Section */}
-        <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm space-y-6">
+        <div className="rounded-3xl border border-blue-100/80 bg-white/85 p-8 shadow-[0_14px_50px_rgba(59,130,246,0.08)] backdrop-blur-sm space-y-6">
           <div>
             <h2 className="text-xl font-bold text-slate-900">Recent Attendance</h2>
             <p className="text-sm text-slate-600 mt-1">{selectedProgramLabel}</p>
@@ -208,12 +208,12 @@ export default function TimeInOutPage() {
               logs.slice(0, 10).map((log) => (
                 <div
                   key={log.id}
-                  className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200 hover:shadow-md transition-shadow"
+                  className="rounded-2xl bg-gradient-to-r from-blue-50/80 to-white/90 p-4 ring-1 ring-blue-100/70 transition-transform hover:-translate-y-0.5"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <div className="font-semibold text-slate-900">{log.date}</div>
-                      <div className="text-sm text-slate-600 mt-1">
+                      <div className="text-sm text-slate-700 mt-1">
                         {log.time_in ? `${log.time_in}` : 'No check-in'} 
                         {log.time_out ? ` → ${log.time_out}` : ' (not checked out)'}
                       </div>

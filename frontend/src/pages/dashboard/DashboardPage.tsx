@@ -70,7 +70,7 @@ export default function DashboardPage() {
         {/* Left Column - Progress & Activity */}
         <div className="lg:col-span-2 space-y-6">
           {/* Progress Card */}
-          <div className="bg-white rounded-xl p-8 border border-gray-200 shadow-sm">
+          <div className="rounded-3xl border border-blue-100/80 bg-white/85 p-8 shadow-[0_14px_50px_rgba(59,130,246,0.08)] backdrop-blur-sm">
             <div className="mb-6">
               <h2 className="text-xl font-bold text-slate-900 mb-2">Hours Progress</h2>
               <p className="text-sm text-slate-600">Track your completion towards the required hours</p>
@@ -127,7 +127,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Activity Feed */}
-          <div className="bg-white rounded-xl p-8 border border-gray-200 shadow-sm">
+          <div className="rounded-3xl border border-blue-100/80 bg-white/85 p-8 shadow-[0_14px_50px_rgba(59,130,246,0.08)] backdrop-blur-sm">
             <div className="mb-6">
               <h2 className="text-xl font-bold text-slate-900 mb-1">Recent Activity</h2>
               <p className="text-sm text-slate-600">Your latest actions and updates</p>
@@ -153,7 +153,7 @@ export default function DashboardPage() {
         {/* Right Column - Quick Actions & Notifications */}
         <div className="space-y-6">
           {/* Quick Actions */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="rounded-3xl border border-blue-100/80 bg-white/85 p-6 shadow-[0_14px_50px_rgba(59,130,246,0.08)] backdrop-blur-sm">
             <div className="mb-4">
               <h3 className="text-lg font-bold text-slate-900">Quick Actions</h3>
               <p className="text-xs text-slate-600 mt-1">Jump back into work</p>
@@ -174,7 +174,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Notifications Panel */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="rounded-3xl border border-blue-100/80 bg-white/85 p-6 shadow-[0_14px_50px_rgba(59,130,246,0.08)] backdrop-blur-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-slate-900">Notifications</h3>
               <span className="text-xs font-semibold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full">5 New</span>
@@ -198,7 +198,7 @@ export default function DashboardPage() {
 
           {/* Program Info */}
           {program && (
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-md">
+            <div className="rounded-3xl bg-gradient-to-br from-blue-600 to-sky-600 p-6 text-white shadow-[0_16px_40px_rgba(37,99,235,0.18)]">
               <div className="space-y-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wider opacity-90 mb-1">
