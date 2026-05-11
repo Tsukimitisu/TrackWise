@@ -34,152 +34,161 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-white dark:bg-slate-950">
-      {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-gradient-to-br from-primary-600 via-primary-500 to-accent-600 p-12 relative overflow-hidden">
-        {/* Animated background */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-20 right-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 left-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-        </div>
-
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-lg font-bold text-white">TW</div>
-          <span className="text-2xl font-bold text-white">TrackWise</span>
-        </Link>
-
-        {/* Content */}
-        <div className="text-white">
-          <h2 className="text-4xl font-bold mb-4">Join us today</h2>
-          <p className="text-lg text-primary-100 mb-8 max-w-md">
-            Start tracking your work, managing time, and collaborating with ease.
-          </p>
-          <div className="space-y-4">
-            {[
-              { icon: '🚀', text: 'Get started in minutes' },
-              { icon: '🔒', text: 'Enterprise-grade security' },
-              { icon: '📱', text: 'Works on all devices' },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <span className="text-2xl">{item.icon}</span>
-                <span className="text-primary-100">{item.text}</span>
-              </div>
-            ))}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-100 text-slate-900">
+      <div className="grid min-h-screen lg:grid-cols-[0.95fr_1.05fr]">
+        <aside className="relative hidden overflow-hidden border-r border-blue-100 bg-gradient-to-br from-blue-600 via-blue-500 to-sky-500 p-12 lg:flex lg:flex-col lg:justify-between">
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute left-[-5rem] top-24 h-80 w-80 rounded-full bg-white/20 blur-3xl" />
+            <div className="absolute bottom-16 right-[-4rem] h-72 w-72 rounded-full bg-sky-100/20 blur-3xl" />
           </div>
-        </div>
 
-        {/* Footer */}
-        <p className="text-sm text-primary-100">© 2026 TrackWise. All rights reserved.</p>
-      </div>
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 text-lg font-bold text-white backdrop-blur-sm">TW</div>
+            <div>
+              <p className="text-sm font-medium text-blue-50/90">TrackWise</p>
+              <h2 className="text-2xl font-bold text-white">Start with a cleaner workspace</h2>
+            </div>
+          </div>
 
-      {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-4 sm:px-6 lg:px-12 py-12">
-        {/* Top navigation */}
-        <div className="absolute top-6 right-6 lg:hidden">
-          <ThemeToggle />
-        </div>
+          <div className="relative z-10 max-w-xl text-white">
+            <span className="mb-5 inline-flex items-center rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-blue-50/90 backdrop-blur-sm">
+              Create your account
+            </span>
+            <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
+              Build access for your team in a few steps.
+            </h1>
+            <p className="mt-6 max-w-lg text-lg leading-8 text-blue-50/90">
+              TrackWise supports organizations, roles, attendance, reports, and approvals with a layout designed to stay clear and professional.
+            </p>
 
-        <div className="w-full max-w-sm mx-auto lg:max-w-none lg:ml-0">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="lg:hidden mb-6">
+            <div className="mt-10 grid gap-4 sm:grid-cols-3">
+              {['Fast setup', 'Secure login', 'Mobile ready'].map((item) => (
+                <div key={item} className="rounded-2xl border border-white/20 bg-white/10 px-4 py-4 text-sm font-medium text-white backdrop-blur-sm">
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="relative z-10 text-sm text-blue-50/80">© 2026 TrackWise. All rights reserved.</p>
+        </aside>
+
+        <main className="relative flex items-center justify-center px-4 py-10 sm:px-6 lg:px-10">
+          <div className="absolute right-4 top-4 sm:right-6 sm:top-6 lg:hidden">
+            <ThemeToggle />
+          </div>
+
+          <div className="w-full max-w-xl">
+            <div className="mb-6 flex items-center justify-between lg:hidden">
               <Link to="/" className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-gradient-primary flex items-center justify-center text-sm font-bold text-white">TW</div>
-                <span className="font-bold text-lg text-slate-900 dark:text-slate-100">TrackWise</span>
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-sky-500 text-sm font-bold text-white shadow-sm">TW</div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500">TrackWise</p>
+                  <p className="font-semibold text-slate-900">Work tracking system</p>
+                </div>
               </Link>
             </div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Create account</h1>
-            <p className="text-slate-600 dark:text-slate-400">
-              Create a new account to get started. Accounts require email verification.
-            </p>
-          </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="First name" required>
-                <Input
-                  type="text"
-                  value={form.first_name}
-                  onChange={(e) => setForm((current) => ({ ...current, first_name: e.target.value }))}
-                  placeholder="John"
-                  required
-                />
-              </Field>
-              <Field label="Last name" required>
-                <Input
-                  type="text"
-                  value={form.last_name}
-                  onChange={(e) => setForm((current) => ({ ...current, last_name: e.target.value }))}
-                  placeholder="Doe"
-                  required
-                />
-              </Field>
+            <div className="rounded-3xl border border-blue-100 bg-white/95 p-8 shadow-[0_20px_60px_rgba(59,130,246,0.12)] backdrop-blur-sm sm:p-10">
+              <div className="mb-8">
+                <div className="mb-4 hidden lg:block">
+                  <Link to="/" className="inline-flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-sky-500 text-sm font-bold text-white shadow-sm">TW</div>
+                    <span className="text-lg font-bold tracking-tight text-slate-900">TrackWise</span>
+                  </Link>
+                </div>
+
+                <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
+                  Create account
+                </span>
+                <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Register</h1>
+                <p className="mt-3 max-w-lg text-sm leading-7 text-slate-600 sm:text-base">
+                  Create a new account to get started. Accounts require email verification.
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Field label="First name" required>
+                    <Input
+                      type="text"
+                      value={form.first_name}
+                      onChange={(e) => setForm((current) => ({ ...current, first_name: e.target.value }))}
+                      placeholder="John"
+                      required
+                    />
+                  </Field>
+                  <Field label="Last name" required>
+                    <Input
+                      type="text"
+                      value={form.last_name}
+                      onChange={(e) => setForm((current) => ({ ...current, last_name: e.target.value }))}
+                      placeholder="Doe"
+                      required
+                    />
+                  </Field>
+                </div>
+
+                <Field label="Email address" required>
+                  <Input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm((current) => ({ ...current, email: e.target.value }))}
+                    placeholder="you@example.com"
+                    required
+                  />
+                </Field>
+
+                <Field label="Password" helperText="At least 8 characters" required>
+                  <Input
+                    type="password"
+                    value={form.password}
+                    onChange={(e) => setForm((current) => ({ ...current, password: e.target.value }))}
+                    placeholder="••••••••"
+                    required
+                  />
+                </Field>
+
+                <Field label="Confirm password" required>
+                  <Input
+                    type="password"
+                    value={form.password_confirmation}
+                    onChange={(e) => setForm((current) => ({ ...current, password_confirmation: e.target.value }))}
+                    placeholder="••••••••"
+                    required
+                  />
+                </Field>
+
+                {message && (
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                    <p className="text-sm font-medium text-emerald-700">{message}</p>
+                  </div>
+                )}
+
+                {error && (
+                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3">
+                    <p className="text-sm font-medium text-rose-700">{error}</p>
+                  </div>
+                )}
+
+                <Button type="submit" size="lg" variant="primary" fullWidth isLoading={submitting}>
+                  {submitting ? 'Creating account...' : 'Create account'}
+                </Button>
+              </form>
+
+              <div className="mt-8 text-center text-sm text-slate-600">
+                Already have an account?{' '}
+                <Link to="/login" className="font-semibold text-blue-700 transition-colors hover:text-blue-800">
+                  Sign in
+                </Link>
+              </div>
             </div>
-
-            <Field label="Email address" required>
-              <Input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm((current) => ({ ...current, email: e.target.value }))}
-                placeholder="you@example.com"
-                required
-              />
-            </Field>
-
-            <Field label="Password" helperText="At least 8 characters" required>
-              <Input
-                type="password"
-                value={form.password}
-                onChange={(e) => setForm((current) => ({ ...current, password: e.target.value }))}
-                placeholder="••••••••"
-                required
-              />
-            </Field>
-
-            <Field label="Confirm password" required>
-              <Input
-                type="password"
-                value={form.password_confirmation}
-                onChange={(e) => setForm((current) => ({ ...current, password_confirmation: e.target.value }))}
-                placeholder="••••••••"
-                required
-              />
-            </Field>
-
-            {/* Messages */}
-            {message && (
-              <div className="rounded-lg border border-success/30 bg-success/10 dark:border-success/40 dark:bg-success/5 px-4 py-3">
-                <p className="text-sm font-medium text-success dark:text-emerald-400">{message}</p>
-              </div>
-            )}
-
-            {error && (
-              <div className="rounded-lg border border-danger/30 bg-danger/10 dark:border-danger/40 dark:bg-danger/5 px-4 py-3">
-                <p className="text-sm font-medium text-danger dark:text-red-400">{error}</p>
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <Button type="submit" size="lg" variant="primary" fullWidth isLoading={submitting}>
-              {submitting ? 'Creating account...' : 'Create account'}
-            </Button>
-          </form>
-
-          {/* Links */}
-          <div className="mt-8 text-center">
-            <span className="text-slate-600 dark:text-slate-400">Already have an account? </span>
-            <Link to="/login" className="font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors">
-              Sign in
-            </Link>
           </div>
-        </div>
-      </div>
 
-      {/* Theme Toggle for Desktop */}
-      <div className="absolute top-6 right-6 hidden lg:block">
-        <ThemeToggle />
+          <div className="absolute right-6 top-6 hidden lg:block">
+            <ThemeToggle />
+          </div>
+        </main>
       </div>
     </div>
   );
