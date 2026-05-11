@@ -15,7 +15,7 @@ export function Table({ hoverable = true, className = '', ...props }: TableProps
 interface TableHeadProps extends TableHTMLAttributes<HTMLTableSectionElement> {}
 
 export function TableHead({ className = '', ...props }: TableHeadProps) {
-  return <thead className={['bg-slate-50 dark:bg-slate-900/50', className].filter(Boolean).join(' ')} {...props} />;
+  return <thead className={['bg-blue-50 dark:bg-slate-900/50', className].filter(Boolean).join(' ')} {...props} />;
 }
 
 interface TableBodyProps extends TableHTMLAttributes<HTMLTableSectionElement> {}
@@ -32,7 +32,7 @@ export function TableRow({ hoverable = true, className = '', ...props }: TableRo
   return (
     <tr
       className={[
-        hoverable ? 'transition-colors duration-200 hover:bg-slate-50 dark:hover:bg-slate-800/50' : '',
+        hoverable ? 'transition-colors duration-200 hover:bg-blue-50/80 dark:hover:bg-slate-800/50' : '',
         className,
       ]
         .filter(Boolean)
@@ -51,5 +51,5 @@ export function TableHeaderCell({ className = '', ...props }: TableHeaderCellPro
 interface TableCellProps extends TableHTMLAttributes<HTMLTableCellElement> {}
 
 export function TableCell({ className = '', ...props }: TableCellProps) {
-  return <td className={['px-6 py-4 text-slate-600 dark:text-slate-400', className].filter(Boolean).join(' ')} {...props} />;
+  return <td className={['px-6 py-4 text-slate-700 dark:text-slate-300', className].filter(Boolean).join(' ')} {...props} />;
 }

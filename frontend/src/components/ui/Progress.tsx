@@ -32,7 +32,7 @@ export function Progress({ value, max = 100, color = 'primary', size = 'md', sho
           style={{ width: `${percentage}%` }}
         />
       </div>
-      {showLabel && <div className="mt-1.5 text-xs font-medium text-slate-600 dark:text-slate-400">{Math.round(percentage)}%</div>}
+      {showLabel && <div className="mt-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">{Math.round(percentage)}%</div>}
     </div>
   );
 }
@@ -79,7 +79,7 @@ export function ProgressRing({ value, max = 100, color = 'primary', size = 120, 
       </svg>
       {showLabel && (
         <div className="absolute flex flex-col items-center justify-center">
-          <span className="text-lg font-bold text-slate-900 dark:text-slate-100">{Math.round(percentage)}%</span>
+          <span className="text-lg font-bold text-slate-900 dark:text-slate-50">{Math.round(percentage)}%</span>
         </div>
       )}
     </div>

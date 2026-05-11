@@ -23,7 +23,7 @@ export default function Card({
   };
 
   const allClasses = [
-    'rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800',
+    'rounded-2xl border border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100',
     gradient ? 'bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-800 dark:via-slate-750 dark:to-slate-700' : '',
     hoverable ? 'transition-all duration-200 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600' : '',
     interactive ? 'cursor-pointer' : '',
@@ -51,8 +51,8 @@ export function CardHeader({ title, description, action, className = '', ...prop
   return (
     <div className={['flex items-start justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-700', className].filter(Boolean).join(' ')} {...props}>
       <div className="min-w-0 flex-1">
-        {title && <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>}
-        {description && <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{description}</p>}
+        {title && <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">{title}</h3>}
+        {description && <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">{description}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
     </div>

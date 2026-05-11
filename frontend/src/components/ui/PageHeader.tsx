@@ -16,14 +16,14 @@ export default function PageHeader({ eyebrow, title, description, actions, child
 					{eyebrow && (
 						<div className="mb-2 inline-flex items-center gap-2 rounded-full bg-primary-50 dark:bg-primary-950/30 px-3 py-1">
 							<span className="h-1.5 w-1.5 rounded-full bg-primary-500"></span>
-							<span className="text-xs font-semibold uppercase tracking-wider text-primary-700 dark:text-primary-300">{eyebrow}</span>
+							<span className="text-xs font-semibold uppercase tracking-wider text-primary-800 dark:text-primary-200">{eyebrow}</span>
 						</div>
 					)}
 					<h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-2">
 						{title}
 					</h1>
 					{description && (
-						<p className="text-base text-slate-600 dark:text-slate-400 max-w-2xl">
+						<p className="text-base text-slate-700 dark:text-slate-300 max-w-2xl">
 							{description}
 						</p>
 					)}
