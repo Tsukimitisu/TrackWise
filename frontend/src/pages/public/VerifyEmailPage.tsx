@@ -53,18 +53,23 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-6 text-slate-950 dark:bg-slate-950 dark:text-slate-50 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-100 px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-md justify-end">
         <ThemeToggle />
       </div>
+
       <div className="mx-auto mt-10 max-w-md">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold tracking-tight">{copy.title}</h1>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{copy.body}</p>
+        <div className="mb-6 text-center">
+          <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
+            Verification
+          </span>
+          <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900">{copy.title}</h1>
+          <p className="mt-3 text-sm leading-7 text-slate-600">{copy.body}</p>
         </div>
-        <Surface className="p-6 sm:p-7">
+
+        <Surface className="border border-blue-100 bg-white/95 p-6 shadow-[0_20px_60px_rgba(59,130,246,0.12)] sm:p-7">
           {status === 'verified' ? (
-            <Link to="/login" className="inline-flex w-full justify-center rounded-md bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200">
+            <Link to="/login" className="inline-flex w-full justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">
               Sign in
             </Link>
           ) : (
@@ -72,14 +77,15 @@ export default function VerifyEmailPage() {
               <FieldShell label="Email">
                 <TextField type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
               </FieldShell>
-              {message ? <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-200">{message}</p> : null}
-              {error ? <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-200">{error}</p> : null}
-              <button type="submit" disabled={submitting} className="w-full rounded-md bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200">
+              {message ? <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p> : null}
+              {error ? <p className="rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p> : null}
+              <button type="submit" disabled={submitting} className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
                 {submitting ? 'Sending...' : 'Resend verification email'}
               </button>
             </form>
           )}
-          <Link to="/login" className="mt-4 inline-flex text-sm font-medium text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white">
+
+          <Link to="/login" className="mt-4 inline-flex text-sm font-medium text-blue-700 transition-colors hover:text-blue-800">
             Back to sign in
           </Link>
         </Surface>
