@@ -11,6 +11,7 @@ export interface AuthUser {
   first_name: string;
   last_name: string;
   email: string;
+  email_verified_at?: string | null;
   phone?: string;
   role: { id: number; name: RoleName };
   organization?: { id: number; name: string } | null;

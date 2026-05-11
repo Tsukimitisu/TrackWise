@@ -1,8 +1,8 @@
-import axios from 'axios';
+import client from '../api/client';
 
 export const exportToCSV = async (endpoint: string, filename: string, filters?: any) => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}${endpoint}`, {
+    const response = await client.get(endpoint, {
       params: filters,
       responseType: 'blob',
     });
