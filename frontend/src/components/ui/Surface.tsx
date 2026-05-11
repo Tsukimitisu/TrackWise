@@ -2,14 +2,16 @@
 
 interface SurfaceProps extends HTMLAttributes<HTMLDivElement> {
 	elevated?: boolean;
+	hoverable?: boolean;
 }
 
-export default function Surface({ className = '', elevated = true, ...props }: SurfaceProps) {
+export default function Surface({ className = '', elevated = true, hoverable = false, ...props }: SurfaceProps) {
 	return (
 		<div
 			className={[
-				'rounded-lg bg-white dark:bg-slate-950',
-				elevated ? 'border border-slate-200 shadow-sm dark:border-slate-800' : 'border border-slate-200 dark:border-slate-800',
+				'rounded-2xl bg-white dark:bg-slate-800',
+				elevated ? 'border border-slate-200 shadow-sm dark:border-slate-700 shadow-slate-100 dark:shadow-black/20' : 'border border-slate-200 dark:border-slate-700',
+				hoverable ? 'transition-all duration-200 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600' : '',
 				className,
 			]
 				.filter(Boolean)

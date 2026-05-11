@@ -10,16 +10,31 @@ interface PageHeaderProps {
 
 export default function PageHeader({ eyebrow, title, description, actions, children }: PageHeaderProps) {
 	return (
-		<div className="space-y-4">
-			<div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-				<div className="max-w-3xl">
-					{eyebrow ? <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">{eyebrow}</div> : null}
-					<h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">{title}</h1>
-					{description ? <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{description}</p> : null}
+		<div className="space-y-6 animate-fade-in">
+			<div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+				<div className="flex-1 min-w-0">
+					{eyebrow && (
+						<div className="mb-2 inline-flex items-center gap-2 rounded-full bg-primary-50 dark:bg-primary-950/30 px-3 py-1">
+							<span className="h-1.5 w-1.5 rounded-full bg-primary-500"></span>
+							<span className="text-xs font-semibold uppercase tracking-wider text-primary-700 dark:text-primary-300">{eyebrow}</span>
+						</div>
+					)}
+					<h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-2">
+						{title}
+					</h1>
+					{description && (
+						<p className="text-base text-slate-600 dark:text-slate-400 max-w-2xl">
+							{description}
+						</p>
+					)}
 				</div>
-				{actions ? <div className="flex flex-wrap gap-2.5">{actions}</div> : null}
+				{actions && (
+					<div className="flex flex-wrap gap-3 shrink-0">
+						{actions}
+					</div>
+				)}
 			</div>
-			{children ? <div>{children}</div> : null}
+			{children && <div>{children}</div>}
 		</div>
 	);
 }

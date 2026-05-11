@@ -5,18 +5,24 @@ Local development run instructions
 Backend (Laravel):
 
 1. Ensure XAMPP MySQL is running and database `trackwise` exists. Update `backend/.env` accordingly.
-   Add `FRONTEND_URL=http://localhost:5173` and configure real SMTP values for account verification and password reset email:
+   For local Vite on ports 5173 or 5174, use:
 
 ```
-MAIL_MAILER=smtp
-MAIL_HOST=your-smtp-host
-MAIL_PORT=587
-MAIL_USERNAME=your-smtp-username
-MAIL_PASSWORD=your-smtp-password
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=no-reply@your-domain.test
+APP_URL=http://localhost:8000
+FRONTEND_URL=http://localhost:5174
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174
+SANCTUM_STATEFUL_DOMAINS=localhost:5173,127.0.0.1:5173,localhost:5174,127.0.0.1:5174
+```
+
+   For immediate local registration testing, write verification and reset links to Laravel logs:
+
+```
+MAIL_MAILER=log
+MAIL_FROM_ADDRESS=no-reply@trackwise.test
 MAIL_FROM_NAME=TrackWise
 ```
+
+   For real email delivery, switch `MAIL_MAILER=smtp` and provide valid `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_ENCRYPTION`, and `MAIL_FROM_ADDRESS` values.
 
 2. From project backend folder:
 
@@ -26,6 +32,7 @@ composer install
 php artisan key:generate
 php artisan migrate --seed
 php artisan storage:link
+php artisan config:clear
 # Use XAMPP PHP to serve if needed:
 & 'C:\xampp\php\php.exe' 'C:\Users\revil\Desktop\TrackWise\backend\artisan' serve --host=127.0.0.1 --port=8000
 ```
