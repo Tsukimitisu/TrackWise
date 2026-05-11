@@ -51,7 +51,7 @@ export default function AppShell() {
   }, [user?.first_name, user?.last_name]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen bg-white text-slate-900">
       {/* Mobile overlay */}
       {mobileOpen && (
         <button 
@@ -62,24 +62,24 @@ export default function AppShell() {
         />
       )}
 
-      <div className="mx-auto flex min-h-screen max-w-7xl gap-6 lg:gap-0">
-        {/* Sidebar */}
+      <div className="flex min-h-screen">
+        {/* Sidebar - Fixed on left */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200 bg-white transition-all duration-300 dark:border-slate-700 dark:bg-slate-900 lg:sticky lg:translate-x-0 ${
-            collapsed ? 'lg:w-20' : 'lg:w-64'
+          className={`fixed inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 bg-gradient-to-b from-blue-50 via-blue-50 to-blue-100 border-r border-blue-200 ${
+            collapsed ? 'w-20' : 'w-64'
           } ${mobileOpen ? 'translate-x-0 shadow-lg' : '-translate-x-full lg:translate-x-0'}`}
         >
           {/* Sidebar Header */}
-          <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-6 py-5 dark:border-slate-700">
+          <div className="flex items-center justify-between gap-3 px-6 py-6 border-b border-blue-200">
             <Link to="/app" className="flex items-center gap-3 min-w-0">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary text-sm font-bold text-white shrink-0">TW</div>
-              {!collapsed && <span className="font-bold text-lg tracking-tight text-slate-900 dark:text-slate-100">TrackWise</span>}
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-xs font-bold text-white shrink-0 shadow-md">TW</div>
+              {!collapsed && <span className="font-bold text-base tracking-tight text-blue-900">TrackWise</span>}
             </Link>
             {/* Close button for mobile */}
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
-              className="lg:hidden inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              className="lg:hidden inline-flex h-8 w-8 items-center justify-center rounded-lg text-blue-600 hover:bg-blue-200 transition-colors"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -88,7 +88,7 @@ export default function AppShell() {
           </div>
 
           {/* Navigation */}
-          <nav className="mt-5 flex-1 overflow-y-auto space-y-1 px-3 py-2">
+          <nav className="flex-1 overflow-y-auto space-y-1 px-3 py-4">
             {navigation.map((item) => (
               <NavLink
                 key={item.to}
@@ -96,9 +96,9 @@ export default function AppShell() {
                 className={({ isActive }) =>
                   `group flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-primary-50 text-primary-600 dark:bg-primary-950/20 dark:text-primary-400 shadow-sm'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
-                  } ${collapsed ? 'lg:justify-center lg:px-3' : ''}`
+                      ? 'bg-white text-blue-600 shadow-md'
+                      : 'text-blue-700 hover:bg-white/50 hover:text-blue-900'
+                  } ${collapsed ? 'justify-center px-3' : ''}`
                 }
                 title={collapsed ? item.label : undefined}
               >
@@ -109,13 +109,13 @@ export default function AppShell() {
           </nav>
 
           {/* Sidebar Footer - User Profile */}
-          <div className="border-t border-slate-200 px-3 py-4 dark:border-slate-700">
-            <div className={`flex items-center gap-3 rounded-lg p-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${collapsed ? 'lg:justify-center' : ''}`}>
-              <div className="h-9 w-9 rounded-full bg-gradient-primary flex items-center justify-center text-sm font-bold text-white shrink-0">{initials}</div>
+          <div className="border-t border-blue-200 px-3 py-4 bg-blue-50">
+            <div className={`flex items-center gap-3 rounded-lg p-3 hover:bg-white/60 transition-colors cursor-pointer ${collapsed ? 'justify-center' : ''}`}>
+              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-xs font-bold text-white shrink-0 shadow-sm">{initials}</div>
               {!collapsed && (
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.first_name} {user?.last_name}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.role.name}</p>
+                  <p className="text-sm font-semibold text-blue-900 truncate">{user?.first_name} {user?.last_name}</p>
+                  <p className="text-xs text-blue-600 truncate">{user?.role.name}</p>
                 </div>
               )}
             </div>
@@ -123,44 +123,48 @@ export default function AppShell() {
         </aside>
 
         {/* Main Content */}
-        <main className="min-w-0 flex-1 px-4 py-6 lg:px-8 lg:py-8">
+        <main className={`flex-1 flex flex-col transition-all duration-300 ${collapsed ? 'lg:ml-20' : 'lg:ml-64'} ml-0`}>
           {/* Top Navigation */}
-          <div className="mb-8 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              {/* Mobile menu button */}
-              <button
-                type="button"
-                onClick={() => setMobileOpen(true)}
-                className="lg:hidden inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              <div className="hidden sm:block">
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{user?.organization?.name ?? 'TrackWise'}</h1>
+          <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between gap-4 px-4 py-4 lg:px-8 lg:py-5">
+              <div className="flex items-center gap-3">
+                {/* Mobile menu button */}
+                <button
+                  type="button"
+                  onClick={() => setMobileOpen(true)}
+                  className="lg:hidden inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-gray-50 transition-colors"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+                <div className="hidden sm:block">
+                  <h1 className="text-xl font-bold text-slate-900">{user?.organization?.name ?? 'TrackWise'}</h1>
+                </div>
               </div>
-            </div>
 
-            {/* Right Actions */}
-            <div className="flex items-center gap-3">
-              <ThemeToggle />
-              <button
-                type="button"
-                onClick={clearSession}
-                className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 transition-colors"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span className="hidden sm:inline">Logout</span>
-              </button>
+              {/* Right Actions */}
+              <div className="flex items-center gap-3">
+                <ThemeToggle />
+                <button
+                  type="button"
+                  onClick={clearSession}
+                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span className="hidden sm:inline">Logout</span>
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Page Content */}
-          <div className="animate-fade-in">
-            <Outlet />
+          <div className="flex-1 px-4 py-6 lg:px-8 lg:py-8 bg-gradient-to-b from-white to-blue-50">
+            <div className="animate-fade-in">
+              <Outlet />
+            </div>
           </div>
         </main>
       </div>

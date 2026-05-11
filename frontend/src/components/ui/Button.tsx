@@ -24,12 +24,12 @@ export default function Button({
   const baseClasses = 'inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 rounded-lg';
 
   const variantClasses = {
-    primary: 'bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700 disabled:bg-slate-300 disabled:text-slate-500 dark:disabled:bg-slate-700',
-    secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200 active:bg-slate-300 disabled:bg-slate-100 disabled:text-slate-400 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 dark:active:bg-slate-600',
+    primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-300 disabled:text-slate-500 dark:disabled:bg-slate-700 shadow-sm hover:shadow-md',
+    secondary: 'bg-blue-50 text-blue-700 hover:bg-blue-100 active:bg-blue-200 disabled:bg-slate-100 disabled:text-slate-400 border border-blue-200 hover:border-blue-300 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 dark:active:bg-slate-600',
     ghost: 'text-slate-700 hover:bg-slate-100 active:bg-slate-200 disabled:text-slate-400 dark:text-slate-300 dark:hover:bg-slate-800 dark:active:bg-slate-700 dark:disabled:text-slate-600',
     outline: 'border border-slate-300 text-slate-900 hover:bg-slate-50 active:bg-slate-100 disabled:border-slate-200 disabled:text-slate-400 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-900 dark:active:bg-slate-800',
-    danger: 'bg-danger text-white hover:bg-red-600 active:bg-red-700 disabled:bg-slate-300 disabled:text-slate-500 dark:disabled:bg-slate-700',
-    success: 'bg-success text-white hover:bg-emerald-600 active:bg-emerald-700 disabled:bg-slate-300 disabled:text-slate-500 dark:disabled:bg-slate-700',
+    danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 disabled:bg-slate-300 disabled:text-slate-500 dark:disabled:bg-slate-700 shadow-sm hover:shadow-md',
+    success: 'bg-green-600 text-white hover:bg-green-700 active:bg-green-800 disabled:bg-slate-300 disabled:text-slate-500 dark:disabled:bg-slate-700 shadow-sm hover:shadow-md',
   };
 
   const sizeClasses = {
