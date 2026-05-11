@@ -1,8 +1,6 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
-
-interface Evaluation {
+import client from '../../api/client'; interface Evaluation {
   id: number;
   attendance_score?: number;
   performance_score?: number;
@@ -28,7 +26,7 @@ export default function EvaluationDetailPage() {
   const fetchEvaluation = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/evaluations/${id}`);
+      const response = await client.get(`/evaluations/${id}`);
       setEvaluation(response.data);
     } catch {
       navigate('/app/evaluations');
@@ -39,7 +37,7 @@ export default function EvaluationDetailPage() {
 
   const handleDelete = async () => {
     if (!window.confirm('Delete this evaluation?')) return;
-    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/evaluations/${id}`);
+    await client.delete(`/evaluations/${id}`);
     navigate('/app/evaluations');
   };
 

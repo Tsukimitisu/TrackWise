@@ -1,7 +1,6 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from '../../auth/AuthContext';
+import client from '../../api/client'; import { useAuth } from '../../auth/AuthContext';
 import { hasRole } from '../../utils/roleHelper';
 import PageHeader from '../../components/ui/PageHeader';
 import Surface from '../../components/ui/Surface';
@@ -50,8 +49,8 @@ export default function AssignmentFormPage() {
 
   const fetchLookups = async () => {
     const [uRes, pRes] = await Promise.all([
-      axios.get(`${import.meta.env.VITE_API_BASE_URL}/users`),
-      axios.get(`${import.meta.env.VITE_API_BASE_URL}/programs`),
+      client.get(`/users`),
+      client.get(`/programs`),
     ]);
     setUsers(uRes.data.data || uRes.data || []);
     setPrograms(pRes.data.data || pRes.data || []);
@@ -60,7 +59,7 @@ export default function AssignmentFormPage() {
   const fetchAssignment = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/assignments/${id}`);
+      const res = await client.get(`/assignments/${id}`);
       const a = res.data;
       setFormData({
         user_id: a.user?.id || '',
@@ -95,9 +94,9 @@ export default function AssignmentFormPage() {
     try {
       setSubmitting(true);
       if (id) {
-        await axios.put(`${import.meta.env.VITE_API_BASE_URL}/assignments/${id}`, formData);
+        await client.put(`/assignments/${id}`, formData);
       } else {
-        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/assignments`, formData);
+        await client.post(`/assignments`, formData);
       }
       navigate('/app/assignments');
     } catch {

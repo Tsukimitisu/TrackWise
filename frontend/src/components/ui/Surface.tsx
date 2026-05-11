@@ -9,7 +9,7 @@ export default function Surface({ className = '', elevated = true, ...props }: S
 		<div
 			className={[
 				'rounded-lg bg-white dark:bg-slate-950',
-				elevated ? 'shadow-sm ring-1 ring-slate-50 dark:ring-slate-800' : '',
+				elevated ? 'border border-slate-200 shadow-sm dark:border-slate-800' : 'border border-slate-200 dark:border-slate-800',
 				className,
 			]
 				.filter(Boolean)

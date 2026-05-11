@@ -1,8 +1,6 @@
-﻿import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-
-interface UserProgram {
+import client from '../../api/client'; interface UserProgram {
   id: number;
   program: { name: string };
 }
@@ -34,7 +32,7 @@ export default function DocumentationUploadPage() {
   }, []);
 
   const fetchUserPrograms = async () => {
-    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/assignments`);
+    const response = await client.get(`/assignments`);
     const programs = response.data.data || response.data;
     const list = Array.isArray(programs) ? programs : [];
     setUserPrograms(list);
@@ -96,7 +94,7 @@ export default function DocumentationUploadPage() {
       if (formData.latitude) data.append('latitude', formData.latitude);
       if (formData.longitude) data.append('longitude', formData.longitude);
 
-      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/documentation-files`, data, {
+      await client.post(`/documentation-files`, data, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       navigate('/app/documents');

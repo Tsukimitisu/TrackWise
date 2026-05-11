@@ -1,8 +1,6 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-
-interface DocumentationFile {
+import client from '../../api/client'; interface DocumentationFile {
   id: number;
   file_url: string;
   file_type: string;
@@ -27,7 +25,7 @@ export default function DocumentationPage() {
       setLoading(true);
       const params: Record<string, string> = {};
       if (filterType) params.file_type = filterType;
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/documentation-files`, { params });
+      const response = await client.get(`/documentation-files`, { params });
       const data = response.data.data || response.data;
       setFiles(Array.isArray(data) ? data : []);
     } finally {
@@ -37,7 +35,7 @@ export default function DocumentationPage() {
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('Delete this file?')) return;
-    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/documentation-files/${id}`);
+    await client.delete(`/documentation-files/${id}`);
     setFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
