@@ -16,11 +16,29 @@ class CheckRole
         }
 
         $userRole = $user->role?->name ?? $user->role;
+        $allowedRoles = $this->expandRoles($roles);
 
-        if (!in_array($userRole, $roles)) {
+        if (!in_array($userRole, $allowedRoles, true)) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
         return $next($request);
+    }
+
+    private function expandRoles(array $roles): array
+    {
+        $aliases = [
+            'admin' => ['Super Admin', 'Organization Admin'],
+            'coordinator' => ['Coordinator'],
+            'supervisor' => ['Supervisor'],
+            'student' => ['Student'],
+            'viewer' => ['Viewer'],
+        ];
+
+        return collect($roles)
+            ->flatMap(fn ($role) => $aliases[strtolower($role)] ?? [$role])
+            ->unique()
+            ->values()
+            ->all();
     }
 }

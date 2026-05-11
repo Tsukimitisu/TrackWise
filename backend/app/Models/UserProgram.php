@@ -51,6 +51,16 @@ class UserProgram extends Model
         return $this->hasMany(AttendanceLog::class);
     }
 
+    public function dailyReports(): HasMany
+    {
+        return $this->hasMany(DailyReport::class);
+    }
+
+    public function weeklyReports(): HasMany
+    {
+        return $this->hasMany(WeeklyReport::class);
+    }
+
     public function remainingHours(): float
     {
         return max(0, (float) $this->required_hours - (float) $this->completed_hours);

@@ -16,7 +16,6 @@ class RegisterRequest extends FormRequest
     {
         return [
             'organization_id' => ['nullable', 'integer', 'exists:organizations,id'],
-            'role_id' => ['required', 'integer', 'exists:roles,id'],
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],

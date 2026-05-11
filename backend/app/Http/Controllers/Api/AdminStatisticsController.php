@@ -21,9 +21,11 @@ class AdminStatisticsController extends Controller
         $totalPrograms = Program::count();
         $totalAssignments = UserProgram::count();
 
-        $usersByRole = User::selectRaw('role, COUNT(*) as count')
-            ->groupBy('role')
-            ->pluck('count', 'role');
+        $usersByRole = User::query()
+            ->join('roles', 'users.role_id', '=', 'roles.id')
+            ->selectRaw('roles.name as role_name, COUNT(*) as count')
+            ->groupBy('roles.name')
+            ->pluck('count', 'role_name');
 
         $activePrograms = Program::where('status', 'active')->count();
         $completedPrograms = Program::where('status', 'completed')->count();
@@ -59,14 +61,30 @@ class AdminStatisticsController extends Controller
             ->distinct()
             ->count('user_programs.user_id');
 
-        $recentUsers = User::latest('created_at')->take(10)->get(['id', 'name', 'email', 'role', 'created_at']);
+        $recentUsers = User::query()
+            ->with('role')
+            ->latest('created_at')
+            ->take(10)
+            ->get(['id', 'first_name', 'last_name', 'email', 'role_id', 'created_at'])
+            ->map(fn (User $user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role?->name ?? 'Unknown',
+                'created_at' => $user->created_at,
+            ]);
 
         $usersLastActive = User::leftJoin('user_programs', 'users.id', '=', 'user_programs.user_id')
-            ->selectRaw('users.id, users.name, MAX(user_programs.updated_at) as last_active')
-            ->groupBy('users.id', 'users.name')
+            ->selectRaw('users.id, users.first_name, users.last_name, MAX(user_programs.updated_at) as last_active')
+            ->groupBy('users.id', 'users.first_name', 'users.last_name')
             ->orderBy('last_active', 'desc')
             ->take(10)
-            ->get();
+            ->get()
+            ->map(fn ($user) => [
+                'id' => $user->id,
+                'name' => trim("{$user->first_name} {$user->last_name}"),
+                'last_active' => $user->last_active,
+            ]);
 
         return response()->json([
             'total_active_users' => $usersWithAssignments,

@@ -25,32 +25,40 @@ class DemoUserSeeder extends Seeder
             ]
         );
 
-        $superAdminRole = Role::query()->where('name', 'Super Admin')->firstOrFail();
-        $studentRole = Role::query()->where('name', 'Student')->firstOrFail();
+        $roles = Role::query()->whereIn('name', [
+            'Super Admin',
+            'Organization Admin',
+            'Coordinator',
+            'Supervisor',
+            'Student',
+            'Viewer',
+        ])->get()->keyBy('name');
 
-        User::query()->updateOrCreate(
-            ['email' => 'admin@trackwise.test'],
-            [
-                'organization_id' => null,
-                'role_id' => $superAdminRole->id,
-                'first_name' => 'Super',
-                'last_name' => 'Admin',
-                'password' => Hash::make('password'),
-                'status' => 'active',
-            ]
-        );
+        $password = Hash::make('Password123!');
 
-        User::query()->updateOrCreate(
-            ['email' => 'student@trackwise.test'],
-            [
-                'organization_id' => $organization->id,
-                'role_id' => $studentRole->id,
-                'first_name' => 'Demo',
-                'last_name' => 'Student',
-                'password' => Hash::make('password'),
-                'status' => 'active',
-            ]
-        );
+        $accounts = [
+            ['Super', 'Admin', 'superadmin@trackwise.test', 'Super Admin', null],
+            ['Organization', 'Admin', 'orgadmin@trackwise.test', 'Organization Admin', $organization->id],
+            ['Demo', 'Coordinator', 'coordinator@trackwise.test', 'Coordinator', $organization->id],
+            ['Demo', 'Supervisor', 'supervisor@trackwise.test', 'Supervisor', $organization->id],
+            ['Demo', 'Student', 'student@trackwise.test', 'Student', $organization->id],
+            ['Demo', 'Viewer', 'viewer@trackwise.test', 'Viewer', $organization->id],
+        ];
+
+        foreach ($accounts as [$firstName, $lastName, $email, $roleName, $organizationId]) {
+            User::query()->updateOrCreate(
+                ['email' => $email],
+                [
+                    'organization_id' => $organizationId,
+                    'role_id' => $roles[$roleName]->id,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'password' => $password,
+                    'status' => 'active',
+                    'email_verified_at' => now(),
+                ]
+            );
+        }
 
         $program = Program::query()->firstOrCreate(
             ['name' => 'BSIT OJT 500 Hours', 'organization_id' => $organization->id],
@@ -63,10 +71,14 @@ class DemoUserSeeder extends Seeder
         );
 
         $student = User::query()->where('email', 'student@trackwise.test')->firstOrFail();
+        $coordinator = User::query()->where('email', 'coordinator@trackwise.test')->firstOrFail();
+        $supervisor = User::query()->where('email', 'supervisor@trackwise.test')->firstOrFail();
 
-        UserProgram::query()->firstOrCreate(
+        UserProgram::query()->updateOrCreate(
             ['user_id' => $student->id, 'program_id' => $program->id],
             [
+                'supervisor_id' => $supervisor->id,
+                'coordinator_id' => $coordinator->id,
                 'required_hours' => $program->required_hours,
                 'completed_hours' => 0,
                 'status' => 'active',

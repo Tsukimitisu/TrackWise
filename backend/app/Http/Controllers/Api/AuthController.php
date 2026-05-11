@@ -5,17 +5,25 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Models\Role;
 use App\Models\User;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
     public function register(RegisterRequest $request): JsonResponse
     {
+        $studentRole = Role::query()->where('name', 'Student')->firstOrFail();
+
         $user = User::create([
             'organization_id' => $request->input('organization_id') ?: null,
-            'role_id' => $request->input('role_id'),
+            'role_id' => $studentRole->id,
             'first_name' => $request->input('first_name'),
             'last_name' => $request->input('last_name'),
             'email' => $request->input('email'),
@@ -24,11 +32,11 @@ class AuthController extends Controller
             'status' => 'active',
         ]);
 
-        $token = $user->createToken('trackwise')->plainTextToken;
+        $user->sendEmailVerificationNotification();
 
         return response()->json([
-            'user' => $user->load(['role', 'organization', 'userPrograms.program']),
-            'token' => $token,
+            'message' => 'Account created. Check your email to verify your account before signing in.',
+            'email' => $user->email,
         ], 201);
     }
 
@@ -38,6 +46,14 @@ class AuthController extends Controller
 
         if (! $user || ! Hash::check($request->input('password'), $user->password)) {
             return response()->json(['message' => 'Invalid credentials.'], 422);
+        }
+
+        if ($user->status !== 'active') {
+            return response()->json(['message' => 'This account is not active.'], 403);
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Please verify your email before signing in.'], 403);
         }
 
         $token = $user->createToken('trackwise')->plainTextToken;
@@ -90,5 +106,74 @@ class AuthController extends Controller
         $user->update(['password' => Hash::make($validated['password'])]);
 
         return response()->json(['message' => 'Password changed successfully.']);
+    }
+
+    public function verifyEmail(Request $request, int $id, string $hash): RedirectResponse
+    {
+        $frontendUrl = rtrim((string) env('FRONTEND_URL', 'http://localhost:5173'), '/');
+        $user = User::find($id);
+
+        if (! $user || ! hash_equals($hash, sha1($user->getEmailForVerification()))) {
+            return redirect()->away("{$frontendUrl}/verify-email?status=invalid");
+        }
+
+        if (! $request->hasValidSignature()) {
+            return redirect()->away("{$frontendUrl}/verify-email?status=expired&email=" . urlencode($user->email));
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+            event(new Verified($user));
+        }
+
+        return redirect()->away("{$frontendUrl}/verify-email?status=verified&email=" . urlencode($user->email));
+    }
+
+    public function resendVerification(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $user = User::query()->where('email', $validated['email'])->first();
+
+        if ($user && ! $user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification();
+        }
+
+        return response()->json(['message' => 'If the account exists and is unverified, a verification email has been sent.']);
+    }
+
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        Password::sendResetLink($validated);
+
+        return response()->json(['message' => 'If the email exists, a password reset link has been sent.']);
+    }
+
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'token' => ['required', 'string'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $status = Password::reset($validated, function (User $user, string $password) {
+            $user->forceFill([
+                'password' => Hash::make($password),
+                'remember_token' => Str::random(60),
+            ])->save();
+        });
+
+        if ($status !== Password::PASSWORD_RESET) {
+            return response()->json(['message' => __($status)], 422);
+        }
+
+        return response()->json(['message' => 'Password reset successfully.']);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AttendanceLog;
 use App\Models\DailyReport;
 use App\Models\WeeklyReport;
 use App\Models\UserProgram;
@@ -22,10 +23,9 @@ class AnalyticsController extends Controller
         $needsRevisionReports = DailyReport::where('status', 'needs_revision')->count();
 
         $totalHours = UserProgram::sum('required_hours') ?? 0;
-        $completedHours = DailyReport::where('status', 'approved')
-            ->selectRaw('CAST(SUM(hours_worked) AS DECIMAL(10,2)) as total')
-            ->first()
-            ?->total ?? 0;
+        $approvedAttendanceHours = AttendanceLog::where('approval_status', 'approved')->sum('total_hours') ?? 0;
+        $assignmentCompletedHours = UserProgram::sum('completed_hours') ?? 0;
+        $completedHours = max((float) $approvedAttendanceHours, (float) $assignmentCompletedHours);
 
         $averageReportsPerStudent = $totalAssignments > 0 
             ? round($totalReports / $totalAssignments, 2) 

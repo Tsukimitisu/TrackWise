@@ -5,6 +5,18 @@ Local development run instructions
 Backend (Laravel):
 
 1. Ensure XAMPP MySQL is running and database `trackwise` exists. Update `backend/.env` accordingly.
+   Add `FRONTEND_URL=http://localhost:5173` and configure real SMTP values for account verification and password reset email:
+
+```
+MAIL_MAILER=smtp
+MAIL_HOST=your-smtp-host
+MAIL_PORT=587
+MAIL_USERNAME=your-smtp-username
+MAIL_PASSWORD=your-smtp-password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=no-reply@your-domain.test
+MAIL_FROM_NAME=TrackWise
+```
 
 2. From project backend folder:
 
@@ -35,3 +47,14 @@ npm run dev
 ```
 
 Confirm the backend is at `http://127.0.0.1:8000` and the frontend dev URL from Vite.
+
+Seeded sample accounts all use password `Password123!`:
+
+| Role | Email |
+|---|---|
+| Super Admin | `superadmin@trackwise.test` |
+| Organization Admin | `orgadmin@trackwise.test` |
+| Coordinator | `coordinator@trackwise.test` |
+| Supervisor | `supervisor@trackwise.test` |
+| Student | `student@trackwise.test` |
+| Viewer | `viewer@trackwise.test` |
