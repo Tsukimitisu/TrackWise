@@ -46,7 +46,7 @@ export default function RegisterPage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 text-lg font-bold text-white backdrop-blur-sm">TW</div>
             <div>
               <p className="text-sm font-medium text-blue-50/90">TrackWise</p>
-              <h2 className="text-2xl font-bold text-white">Start with a cleaner workspace</h2>
+              <h2 className="text-2xl font-bold text-white">Start your OJT tracker</h2>
             </div>
           </div>
 
@@ -55,14 +55,14 @@ export default function RegisterPage() {
               Create your account
             </span>
             <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-              Build access for your team in a few steps.
+              Track your student OJT without organization setup.
             </h1>
             <p className="mt-6 max-w-lg text-lg leading-8 text-blue-50/90">
-              TrackWise supports organizations, roles, attendance, reports, and approvals with a layout designed to stay clear and professional.
+              Create a student account, set your required hours, then manage your DTR, narrative reports, and documentation in one workspace.
             </p>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              {['Fast setup', 'Secure login', 'Mobile ready'].map((item) => (
+              {['No organization needed', 'Printable DTR', 'Report maker'].map((item) => (
                 <div key={item} className="rounded-2xl border border-white/20 bg-white/10 px-4 py-4 text-sm font-medium text-white backdrop-blur-sm">
                   {item}
                 </div>
@@ -84,7 +84,7 @@ export default function RegisterPage() {
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-sky-500 text-sm font-bold text-white shadow-sm">TW</div>
                 <div>
                   <p className="text-sm font-medium text-slate-500">TrackWise</p>
-                  <p className="font-semibold text-slate-900">Work tracking system</p>
+                  <p className="font-semibold text-slate-900">Student OJT tracker</p>
                 </div>
               </Link>
             </div>
@@ -103,7 +103,7 @@ export default function RegisterPage() {
                 </span>
                 <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Register</h1>
                 <p className="mt-3 max-w-lg text-sm leading-7 text-slate-600 sm:text-base">
-                  Create a new account to get started. Accounts require email verification.
+                  Create your student account. You can start tracking your OJT without joining an organization.
                 </p>
               </div>
 
