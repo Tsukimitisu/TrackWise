@@ -2,11 +2,13 @@
 
 interface BadgeProps extends HTMLAttributes<HTMLDivElement> {
   status?: 'approved' | 'pending' | 'rejected' | 'draft' | 'warning' | 'success' | 'error' | 'info';
+  tone?: 'success' | 'danger' | 'warning' | 'info' | string;
   variant?: 'solid' | 'subtle' | 'outline';
   size?: 'sm' | 'md';
 }
 
-export default function Badge({ status = 'info', variant = 'subtle', size = 'md', className = '', children, ...props }: BadgeProps) {
+export default function Badge({ status, tone, variant = 'subtle', size = 'md', className = '', children, ...props }: BadgeProps) {
+  const resolvedStatus = status ?? (tone === 'danger' ? 'error' : tone === 'success' || tone === 'warning' || tone === 'info' ? tone : 'info');
   const statusClasses = {
     approved: {
       solid: 'bg-success text-white',
@@ -57,7 +59,7 @@ export default function Badge({ status = 'info', variant = 'subtle', size = 'md'
 
   const allClasses = [
     'inline-flex items-center gap-1.5 font-medium transition-all duration-200',
-    statusClasses[status][variant],
+    statusClasses[resolvedStatus][variant],
     sizeClasses[size],
     className,
   ]
