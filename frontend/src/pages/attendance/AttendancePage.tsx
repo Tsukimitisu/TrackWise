@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Button from '../../components/ui/Button';
 import PageHeader from '../../components/ui/PageHeader';
 import {
   calculateCompletedHours,
@@ -40,12 +39,8 @@ export default function AttendancePage() {
         description="Review the daily time record for your OJT. This is built for one student tracking personal hours."
         actions={
           <div className="flex flex-wrap gap-3">
-            <Button asChild variant="primary" size="md">
-              <Link to="/app/time-in-out">Add entry</Link>
-            </Button>
-            <Button asChild variant="secondary" size="md">
-              <Link to="/app/printables">Printable DTR</Link>
-            </Button>
+            <Link className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700" to="/app/time-in-out">Add entry</Link>
+            <Link className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100" to="/app/printables">Printable DTR</Link>
           </div>
         }
       />

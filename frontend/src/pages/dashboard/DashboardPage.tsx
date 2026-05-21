@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
-import Button from '../../components/ui/Button';
 import PageHeader from '../../components/ui/PageHeader';
 import {
   calculateCompletedHours,
@@ -33,12 +32,8 @@ export default function DashboardPage() {
         description="Track your OJT hours, DTR entries, narrative reports, and documentation from one student workspace."
         actions={
           <div className="flex flex-wrap gap-3">
-            <Button asChild variant="primary" size="md">
-              <Link to="/app/time-in-out">Add DTR entry</Link>
-            </Button>
-            <Button asChild variant="secondary" size="md">
-              <Link to="/app/ojt-setup">Edit setup</Link>
-            </Button>
+            <Link className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700" to="/app/time-in-out">Add DTR entry</Link>
+            <Link className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100" to="/app/ojt-setup">Edit setup</Link>
           </div>
         }
       />

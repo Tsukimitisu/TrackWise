@@ -1,6 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Button from '../../components/ui/Button';
 import PageHeader from '../../components/ui/PageHeader';
 import {
   calculateDtrHours,
@@ -65,9 +64,7 @@ export default function TimeInOutPage() {
         title="Time In / Time Out"
         description="Add one daily OJT entry at a time. Entries become part of your printable DTR."
         actions={
-          <Button asChild variant="secondary" size="md">
-            <Link to="/app/attendance">View DTR table</Link>
-          </Button>
+          <Link className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100" to="/app/attendance">View DTR table</Link>
         }
       />
 
@@ -114,9 +111,7 @@ export default function TimeInOutPage() {
           {message ? <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">{message}</div> : null}
 
           <div className="mt-6 flex justify-end">
-            <Button type="submit" variant="primary" size="md">
-              Save DTR entry
-            </Button>
+            <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Save DTR entry</button>
           </div>
         </form>
 
