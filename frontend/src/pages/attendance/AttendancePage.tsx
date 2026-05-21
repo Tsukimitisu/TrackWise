@@ -1,139 +1,124 @@
-import { useEffect, useState } from 'react';
-import client from '../../api/client';
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import Button from '../../components/ui/Button';
 import PageHeader from '../../components/ui/PageHeader';
-import Badge from '../../components/ui/Badge';
-import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../components/ui/Table';
-
-interface AttendanceLogItem {
-  id: number;
-  date: string;
-  time_in: string | null;
-  time_out: string | null;
-  total_hours: number;
-  status: string;
-  approval_status: string;
-  userProgram?: {
-    id: number;
-    program?: { name: string };
-  };
-}
+import {
+  calculateCompletedHours,
+  calculateDtrHours,
+  formatHours,
+  loadOjtData,
+  saveOjtData,
+  type DtrEntry,
+  type OjtData,
+} from '../../features/studentOjt/ojtStorage';
 
 export default function AttendancePage() {
-  const [logs, setLogs] = useState<AttendanceLogItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<OjtData>(() => loadOjtData());
 
   useEffect(() => {
-    const loadLogs = async () => {
-      try {
-        const response = await client.get('/attendance-logs');
-        setLogs(response.data.data ?? []);
-      } catch (err) {
-        console.error('Failed to load attendance logs', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    void loadLogs();
+    setData(loadOjtData());
   }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'present':
-        return 'approved';
-      case 'absent':
-        return 'rejected';
-      case 'late':
-        return 'warning';
-      default:
-        return 'pending';
-    }
+  const entries = useMemo(() => [...data.dtrEntries].sort((a, b) => a.date.localeCompare(b.date)), [data.dtrEntries]);
+  const completedHours = calculateCompletedHours(entries);
+  const remainingHours = Math.max(data.profile.requiredHours - completedHours, 0);
+
+  const deleteEntry = (entry: DtrEntry) => {
+    if (!window.confirm(`Delete DTR entry for ${entry.date}?`)) return;
+    const nextData = {
+      ...data,
+      dtrEntries: data.dtrEntries.filter((item) => item.id !== entry.id),
+    };
+    saveOjtData(nextData);
+    setData(nextData);
   };
 
   return (
     <div className="space-y-8 animate-fade-in">
       <PageHeader
-        title="Attendance Records"
-        description="View your complete attendance history with time-in, time-out, and approval status"
+        title="DTR Table"
+        description="Review the daily time record for your OJT. This is built for one student tracking personal hours."
+        actions={
+          <div className="flex flex-wrap gap-3">
+            <Button asChild variant="primary" size="md">
+              <Link to="/app/time-in-out">Add entry</Link>
+            </Button>
+            <Button asChild variant="secondary" size="md">
+              <Link to="/app/printables">Printable DTR</Link>
+            </Button>
+          </div>
+        }
       />
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        {[
-          { label: 'Total Records', value: logs.length, color: 'from-blue-50 to-blue-100' },
-          { label: 'Approved', value: logs.filter(l => l.approval_status === 'approved').length, color: 'from-green-50 to-green-100' },
-          { label: 'Pending', value: logs.filter(l => l.approval_status === 'pending').length, color: 'from-orange-50 to-orange-100' },
-        ].map((stat, i) => (
-          <div key={i} className={`bg-gradient-to-br ${stat.color} rounded-xl p-6 border border-opacity-20 shadow-sm`}>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">{stat.label}</p>
-            <p className="text-3xl font-bold text-slate-900">{stat.value}</p>
-          </div>
-        ))}
-      </div>
+      <section className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+        <Summary label="Total entries" value={String(entries.length)} />
+        <Summary label="Completed hours" value={formatHours(completedHours)} />
+        <Summary label="Hours remaining" value={formatHours(remainingHours)} />
+      </section>
 
-      {/* Table Section */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-bold text-slate-900">Attendance Log</h2>
-          <p className="text-sm text-slate-600 mt-1">Complete history of your time in/out records</p>
+      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 px-6 py-4">
+          <h2 className="text-lg font-bold text-slate-900">Daily Time Record</h2>
+          <p className="text-sm text-slate-600">Student: {data.profile.studentName || 'Not set'} | Required hours: {formatHours(data.profile.requiredHours)}</p>
         </div>
 
-        {loading ? (
-          <div className="p-12 text-center">
-            <div className="text-5xl mb-4">⏳</div>
-            <p className="text-slate-600">Loading attendance records...</p>
-          </div>
-        ) : logs.length > 0 ? (
+        {entries.length ? (
           <div className="overflow-x-auto">
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableHeaderCell>Date</TableHeaderCell>
-                  <TableHeaderCell>Program</TableHeaderCell>
-                  <TableHeaderCell>Time In</TableHeaderCell>
-                  <TableHeaderCell>Time Out</TableHeaderCell>
-                  <TableHeaderCell>Hours</TableHeaderCell>
-                  <TableHeaderCell>Status</TableHeaderCell>
-                  <TableHeaderCell>Approval</TableHeaderCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {logs.map((log) => (
-                  <TableRow key={log.id} className="hover:bg-blue-50 transition-colors">
-                    <TableCell className="font-semibold text-slate-900">{log.date}</TableCell>
-                    <TableCell>{log.userProgram?.program?.name ?? 'N/A'}</TableCell>
-                    <TableCell>{log.time_in ?? '—'}</TableCell>
-                    <TableCell>{log.time_out ?? '—'}</TableCell>
-                    <TableCell>
-                      <span className="font-semibold text-slate-900">
-                        {Number(log.total_hours).toFixed(1)} <span className="text-xs text-slate-600">hrs</span>
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge status={getStatusColor(log.status)} variant="subtle" size="sm">
-                        {log.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        status={log.approval_status === 'approved' ? 'approved' : log.approval_status === 'rejected' ? 'rejected' : 'pending'}
-                        variant="solid"
-                        size="sm"
-                      >
-                        {log.approval_status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
+            <table className="min-w-full text-sm">
+              <thead className="bg-slate-50 text-left text-slate-600">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Date</th>
+                  <th className="px-4 py-3 font-semibold">Time in</th>
+                  <th className="px-4 py-3 font-semibold">Time out</th>
+                  <th className="px-4 py-3 font-semibold">Break</th>
+                  <th className="px-4 py-3 font-semibold">Hours</th>
+                  <th className="px-4 py-3 font-semibold">Activities</th>
+                  <th className="px-4 py-3 font-semibold">Signature</th>
+                  <th className="px-4 py-3 font-semibold">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {entries.map((entry) => (
+                  <tr key={entry.id} className="align-top">
+                    <td className="px-4 py-3 font-medium text-slate-900">{entry.date}</td>
+                    <td className="px-4 py-3 text-slate-700">{entry.timeIn}</td>
+                    <td className="px-4 py-3 text-slate-700">{entry.timeOut}</td>
+                    <td className="px-4 py-3 text-slate-700">{entry.breakMinutes} min</td>
+                    <td className="px-4 py-3 font-semibold text-slate-900">{formatHours(calculateDtrHours(entry))}</td>
+                    <td className="max-w-md px-4 py-3 text-slate-700">{entry.activities}</td>
+                    <td className="px-4 py-3 text-slate-700">{entry.signatureName || data.profile.studentName || 'Unsigned'}</td>
+                    <td className="px-4 py-3">
+                      <button type="button" onClick={() => deleteEntry(entry)} className="text-sm font-semibold text-rose-700 hover:text-rose-800">
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
+              </tbody>
+              <tfoot className="border-t border-slate-200 bg-slate-50">
+                <tr>
+                  <td className="px-4 py-3 font-bold text-slate-900" colSpan={4}>Total rendered hours</td>
+                  <td className="px-4 py-3 font-bold text-slate-900">{formatHours(completedHours)}</td>
+                  <td className="px-4 py-3" colSpan={3} />
+                </tr>
+              </tfoot>
+            </table>
           </div>
         ) : (
-          <div className="p-12 text-center">
-            <div className="text-5xl mb-4">📋</div>
-            <p className="text-slate-600">No attendance records found. Start by recording your time in/out.</p>
+          <div className="p-10 text-center text-slate-600">
+            No DTR entries yet. Add your first time-in and time-out record to start tracking hours.
           </div>
         )}
-      </div>
+      </section>
+    </div>
+  );
+}
+
+function Summary({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p>
+      <p className="mt-2 text-3xl font-bold text-slate-900">{value}</p>
     </div>
   );
 }
