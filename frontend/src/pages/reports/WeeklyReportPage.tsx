@@ -1,1 +1,176 @@
-import { useEffect, useMemo, useState } from 'react'; import { useNavigate } from 'react-router-dom'; import client from '../../api/client'; import Badge from '../../components/ui/Badge'; import EmptyState from '../../components/ui/EmptyState'; import PageHeader from '../../components/ui/PageHeader'; import Surface from '../../components/ui/Surface'; import { TextField } from '../../components/ui/TextField'; import { downloadWeeklyReportsCSV } from '../../utils/exportHelper'; interface WeeklyReport { id: number; user_program_id: number; week_number: number; start_date: string; end_date: string; status: 'draft' | 'submitted' | 'approved' | 'rejected' | 'needs_revision'; submitted_at?: string; reviewed_by?: number; review_comment?: string; userProgram?: { user: { first_name: string; last_name: string }; program: { name: string }; }; } const WeeklyReportPage = () => { const [reports, setReports] = useState<WeeklyReport[]>([]); const [loading, setLoading] = useState(true); const [filter, setFilter] = useState<string>(''); const [search, setSearch] = useState<string>(''); const navigate = useNavigate(); useEffect(() => { fetchReports(); }, [filter, search]); const fetchReports = async () => { try { setLoading(true); const params: Record<string, string> = {}; if (filter) params.status = filter; if (search) params.search = search; const response = await client.get(`/weekly-reports`, { params }); setReports(response.data.data || response.data); } catch (error) { console.error('Error fetching weekly reports:', error); } finally { setLoading(false); } }; const filteredReports = useMemo(() => reports, [reports]); const handleDelete = async (id: number) => { if (!window.confirm('Are you sure you want to delete this report?')) return; try { await client.delete(`/weekly-reports/${id}`); setReports((current) => current.filter((report) => report.id !== id)); } catch (error) { console.error('Error deleting report:', error); } }; return ( <div className="space-y-6"> <PageHeader eyebrow="Reports" title="Weekly Narrative Reports" description="Review weekly submissions with a cleaner hierarchy, consistent actions, and a more modern data table." actions={ <div className="flex flex-wrap gap-3"> <button onClick={async () => { try { await downloadWeeklyReportsCSV({ status: filter, search }); } catch { alert('Failed to export data'); } }} className="rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:bg-slate-100" > Export CSV </button> <button onClick={() => navigate('/app/reports/weekly/create')} className="rounded-lg border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15" > New Report </button> </div> } /> <Surface className="p-5"> <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"> <TextField value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by name, email, program, or summary" className="lg:max-w-xl" /> <div className="flex flex-wrap gap-2"> {['', 'draft', 'submitted', 'approved', 'rejected', 'needs_revision'].map((status) => ( <button key={status || 'all'} onClick={() => setFilter(status)} className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${filter === status ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800'}`} > {status || 'All'} </button> ))} </div> </div> </Surface> {loading ? ( <Surface className="p-10 text-center text-slate-500 dark:text-slate-400">Loading weekly reports...</Surface> ) : filteredReports.length === 0 ? ( <EmptyState title="No weekly reports found" description="Try another filter or create the first weekly submission." /> ) : ( <Surface className="overflow-hidden"> <div className="overflow-x-auto"> <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800"> <thead className="sticky top-0 bg-slate-50/95 text-left dark:bg-slate-950/95"> <tr className="text-xs uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400"> <th className="px-6 py-4">Week #</th> <th className="px-6 py-4">Period</th> <th className="px-6 py-4">Student</th> <th className="px-6 py-4">Program</th> <th className="px-6 py-4">Status</th> <th className="px-6 py-4 text-right">Actions</th> </tr> </thead> <tbody className="divide-y divide-slate-200 dark:divide-slate-800"> {filteredReports.map((report) => ( <tr key={report.id} className="transition hover:bg-slate-50/80 dark:hover:bg-slate-900/50"> <td className="px-6 py-4 text-sm font-semibold text-slate-900 dark:text-slate-50">Week {report.week_number}</td> <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">{report.start_date} to {report.end_date}</td> <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">{report.userProgram?.user.first_name} {report.userProgram?.user.last_name}</td> <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">{report.userProgram?.program.name}</td> <td className="px-6 py-4"><Badge tone={report.status === 'approved' ? 'success' : report.status === 'rejected' ? 'danger' : report.status === 'needs_revision' ? 'warning' : 'info'}>{report.status}</Badge></td> <td className="px-6 py-4"> <div className="flex justify-end gap-2"> <button onClick={() => navigate(`/app/reports/weekly/${report.id}`)} className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"> View </button> {report.status === 'draft' ? ( <> <button onClick={() => navigate(`/app/reports/weekly/${report.id}/edit`)} className="rounded-lg bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"> Edit </button> <button onClick={() => handleDelete(report.id)} className="rounded-lg bg-gray-200 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-gray-200"> Delete </button> </> ) : null} </div> </td> </tr> ))} </tbody> </table> </div> </Surface> )} </div> ); }; export default WeeklyReportPage; 
+import { FormEvent, useEffect, useState } from 'react';
+import Button from '../../components/ui/Button';
+import PageHeader from '../../components/ui/PageHeader';
+import {
+  createId,
+  loadOjtData,
+  saveOjtData,
+  type NarrativeReport,
+  type OjtData,
+} from '../../features/studentOjt/ojtStorage';
+
+const fieldClass = 'w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200';
+
+const blankReport = (): Omit<NarrativeReport, 'id'> => ({
+  title: 'Weekly Narrative Report',
+  periodStart: '',
+  periodEnd: '',
+  activities: '',
+  learnings: '',
+  challenges: '',
+  reflection: '',
+});
+
+export default function WeeklyReportPage() {
+  const [data, setData] = useState<OjtData>(() => loadOjtData());
+  const [form, setForm] = useState<Omit<NarrativeReport, 'id'>>(blankReport);
+  const [savedMessage, setSavedMessage] = useState('');
+
+  useEffect(() => {
+    setData(loadOjtData());
+  }, []);
+
+  const updateField = (key: keyof Omit<NarrativeReport, 'id'>, value: string) => {
+    setSavedMessage('');
+    setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const generateDraft = () => {
+    const entries = data.dtrEntries.filter((entry) => {
+      if (!form.periodStart || !form.periodEnd) return true;
+      return entry.date >= form.periodStart && entry.date <= form.periodEnd;
+    });
+
+    const activities = entries.map((entry) => `${entry.date}: ${entry.activities}`).join('\n');
+    setForm((current) => ({
+      ...current,
+      activities: activities || current.activities,
+      learnings: current.learnings || 'I improved my workplace discipline, task documentation, and ability to complete assigned OJT activities.',
+      challenges: current.challenges || 'The main challenge this period was balancing accuracy, speed, and unfamiliar work procedures.',
+      reflection: current.reflection || 'This OJT period helped me connect classroom learning with actual workplace tasks and professional expectations.',
+    }));
+  };
+
+  const saveReport = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const current = loadOjtData();
+    const nextReport: NarrativeReport = { ...form, id: createId('narrative') };
+    const nextData = {
+      ...current,
+      narrativeReports: [nextReport, ...current.narrativeReports],
+    };
+    saveOjtData(nextData);
+    setData(nextData);
+    setForm(blankReport());
+    setSavedMessage('Narrative report saved.');
+  };
+
+  const deleteReport = (id: string) => {
+    if (!window.confirm('Delete this narrative report?')) return;
+    const nextData = {
+      ...data,
+      narrativeReports: data.narrativeReports.filter((report) => report.id !== id),
+    };
+    saveOjtData(nextData);
+    setData(nextData);
+  };
+
+  return (
+    <div className="space-y-8 animate-fade-in print:space-y-4">
+      <div className="print:hidden">
+        <PageHeader
+          title="Narrative Report Maker"
+          description="Draft, save, and print narrative reports for your personal OJT documentation."
+          actions={
+            <Button type="button" onClick={() => window.print()} variant="secondary" size="md">
+              Print reports
+            </Button>
+          }
+        />
+      </div>
+
+      <form onSubmit={saveReport} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm print:hidden">
+        <div className="grid gap-5 md:grid-cols-3">
+          <Field label="Report title">
+            <input className={fieldClass} value={form.title} onChange={(event) => updateField('title', event.target.value)} required />
+          </Field>
+          <Field label="Period start">
+            <input className={fieldClass} type="date" value={form.periodStart} onChange={(event) => updateField('periodStart', event.target.value)} required />
+          </Field>
+          <Field label="Period end">
+            <input className={fieldClass} type="date" value={form.periodEnd} onChange={(event) => updateField('periodEnd', event.target.value)} required />
+          </Field>
+        </div>
+
+        <div className="mt-5 grid gap-5">
+          <Field label="Activities / accomplishments">
+            <textarea className={fieldClass} rows={6} value={form.activities} onChange={(event) => updateField('activities', event.target.value)} required />
+          </Field>
+          <Field label="Skills learned">
+            <textarea className={fieldClass} rows={4} value={form.learnings} onChange={(event) => updateField('learnings', event.target.value)} />
+          </Field>
+          <Field label="Challenges encountered">
+            <textarea className={fieldClass} rows={4} value={form.challenges} onChange={(event) => updateField('challenges', event.target.value)} />
+          </Field>
+          <Field label="Reflection">
+            <textarea className={fieldClass} rows={4} value={form.reflection} onChange={(event) => updateField('reflection', event.target.value)} />
+          </Field>
+        </div>
+
+        {savedMessage ? <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">{savedMessage}</div> : null}
+
+        <div className="mt-6 flex flex-wrap justify-end gap-3">
+          <Button type="button" onClick={generateDraft} variant="secondary" size="md">
+            Generate from DTR
+          </Button>
+          <Button type="submit" variant="primary" size="md">
+            Save narrative
+          </Button>
+        </div>
+      </form>
+
+      <section className="space-y-4">
+        {data.narrativeReports.length ? data.narrativeReports.map((report) => (
+          <article key={report.id} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm print:break-inside-avoid print:border-slate-300 print:shadow-none">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">Narrative Report</p>
+                <h2 className="mt-1 text-2xl font-bold text-slate-950">{report.title}</h2>
+                <p className="mt-1 text-sm text-slate-600">{report.periodStart} to {report.periodEnd}</p>
+              </div>
+              <button type="button" onClick={() => deleteReport(report.id)} className="text-sm font-semibold text-rose-700 hover:text-rose-800 print:hidden">
+                Delete
+              </button>
+            </div>
+            <ReportSection title="Activities and Accomplishments" body={report.activities} />
+            <ReportSection title="Skills Learned" body={report.learnings} />
+            <ReportSection title="Challenges Encountered" body={report.challenges} />
+            <ReportSection title="Reflection" body={report.reflection} />
+          </article>
+        )) : (
+          <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-600 print:hidden">
+            No narrative reports yet. Create one from your DTR entries.
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-semibold text-slate-800">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function ReportSection({ title, body }: { title: string; body: string }) {
+  return (
+    <section className="mt-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600">{title}</h3>
+      <p className="mt-2 whitespace-pre-line text-sm leading-7 text-slate-800">{body || 'No details provided.'}</p>
+    </section>
+  );
+}
