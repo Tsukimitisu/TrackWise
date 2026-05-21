@@ -36,6 +36,7 @@ function NavIcon({ name }: { name: NavIconName }) {
 export default function AppShell() {
   const { user, clearSession } = useAuth();
   const navigation = getNavigation(user?.role.name);
+  const isStudent = user?.role.name === 'Student';
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -139,7 +140,7 @@ export default function AppShell() {
                   </svg>
                 </button>
                 <div className="hidden sm:block">
-                  <h1 className="text-xl font-bold text-slate-900">{user?.organization?.name ?? 'TrackWise'}</h1>
+                  <h1 className="text-xl font-bold text-slate-900">{isStudent ? 'My OJT Tracker' : user?.organization?.name ?? 'TrackWise'}</h1>
                 </div>
               </div>
 

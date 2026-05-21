@@ -41,6 +41,7 @@ import WeeklyReportDetailPage from './pages/reports/WeeklyReportDetailPage';
 import WeeklyReportFormPage from './pages/reports/WeeklyReportFormPage';
 import WeeklyReportPage from './pages/reports/WeeklyReportPage';
 import SystemSettingsPage from './pages/settings/SystemSettingsPage';
+import OjtSetupPage from './pages/student/OjtSetupPage';
 import AssignedTraineeDetailPage from './pages/trainees/AssignedTraineeDetailPage';
 import AssignedTraineesPage from './pages/trainees/AssignedTraineesPage';
 import UserDetailPage from './pages/users/UserDetailPage';
@@ -109,6 +110,7 @@ export default function App() {
             <Route path="printables" element={<PrintableReportsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="ojt-setup" element={<OjtSetupPage />} />
             <Route path="*" element={<Navigate to="/app" replace />} />
           </Route>
         </Route>
