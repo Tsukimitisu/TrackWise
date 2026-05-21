@@ -1,2 +1,152 @@
-import { useEffect, useMemo, useState } from 'react'; import client from '../../api/client'; interface AttendanceLogItem { id: number; date: string; total_hours: number; approval_status: string; status: string; userProgram?: { id: number; user?: { first_name: string; last_name: string }; program?: { name: string }; }; } interface DailyReportItem { id: number; report_date: string; status: string; userProgram?: { user?: { first_name: string; last_name: string }; program?: { name: string }; }; } interface WeeklyReportItem { id: number; week_number: number; start_date: string; end_date: string; status: string; userProgram?: { user?: { first_name: string; last_name: string }; program?: { name: string }; }; } type ReportMode = 'attendance' | 'daily' | 'weekly' | 'summary'; function normalizeList<T>(payload: unknown): T[] { if (Array.isArray(payload)) return payload as T[]; if (payload && typeof payload === 'object' && 'data' in payload && Array.isArray((payload as { data: unknown }).data)) { return (payload as { data: T[] }).data; } return []; } export default function PrintableReportsPage() { const [mode, setMode] = useState<ReportMode>('summary'); const [attendanceLogs, setAttendanceLogs] = useState<AttendanceLogItem[]>([]); const [dailyReports, setDailyReports] = useState<DailyReportItem[]>([]); const [weeklyReports, setWeeklyReports] = useState<WeeklyReportItem[]>([]); const [loading, setLoading] = useState(true); const [search, setSearch] = useState(''); useEffect(() => { const load = async () => { try { setLoading(true); const [attendanceResponse, dailyResponse, weeklyResponse] = await Promise.all([ client.get('/attendance-logs'), client.get('/daily-reports'), client.get('/weekly-reports'), ]); setAttendanceLogs(normalizeList<AttendanceLogItem>(attendanceResponse.data)); setDailyReports(normalizeList<DailyReportItem>(dailyResponse.data)); setWeeklyReports(normalizeList<WeeklyReportItem>(weeklyResponse.data)); } catch (error) { console.error('Error loading printable reports:', error); setAttendanceLogs([]); setDailyReports([]); setWeeklyReports([]); } finally { setLoading(false); } }; void load(); }, []); const filteredAttendance = useMemo(() => { const query = search.trim().toLowerCase(); if (!query) return attendanceLogs; return attendanceLogs.filter((item) => { const trainee = `${item.userProgram?.user?.first_name ?? ''} ${item.userProgram?.user?.last_name ?? ''}`.toLowerCase(); const program = (item.userProgram?.program?.name ?? '').toLowerCase(); return trainee.includes(query) || program.includes(query) || item.date.includes(query); }); }, [attendanceLogs, search]); const filteredDaily = useMemo(() => { const query = search.trim().toLowerCase(); if (!query) return dailyReports; return dailyReports.filter((item) => { const trainee = `${item.userProgram?.user?.first_name ?? ''} ${item.userProgram?.user?.last_name ?? ''}`.toLowerCase(); const program = (item.userProgram?.program?.name ?? '').toLowerCase(); return trainee.includes(query) || program.includes(query) || item.report_date.includes(query); }); }, [dailyReports, search]); const filteredWeekly = useMemo(() => { const query = search.trim().toLowerCase(); if (!query) return weeklyReports; return weeklyReports.filter((item) => { const trainee = `${item.userProgram?.user?.first_name ?? ''} ${item.userProgram?.user?.last_name ?? ''}`.toLowerCase(); const program = (item.userProgram?.program?.name ?? '').toLowerCase(); return trainee.includes(query) || program.includes(query) || String(item.week_number).includes(query); }); }, [search, weeklyReports]); const summary = useMemo(() => { const approvedAttendanceHours = attendanceLogs .filter((item) => item.approval_status === 'approved') .reduce((sum, item) => sum + Number(item.total_hours || 0), 0); const approvedDailyReports = dailyReports.filter((item) => item.status === 'approved').length; const approvedWeeklyReports = weeklyReports.filter((item) => item.status === 'approved').length; const totalAttendanceRecords = attendanceLogs.length; return { approvedAttendanceHours, approvedDailyReports, approvedWeeklyReports, totalAttendanceRecords, }; }, [attendanceLogs, dailyReports, weeklyReports]); const handlePrint = () => { window.print(); }; return ( <div className="space-y-6 print:space-y-4"> <section className="rounded-lg border border-white/70 bg-white/80 p-6 shadow-soft backdrop-blur-xl print:rounded-none print:border-0 print:bg-white print:p-0 print:shadow-none"> <div className="flex flex-wrap items-center justify-between gap-4"> <div> <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Printable Reports</p> <h1 className="mt-2 text-3xl font-black tracking-tight text-ink-900">Print-ready summaries for attendance and reports</h1> <p className="mt-3 max-w-3xl text-slate-600"> Generate a compact, browser-print-friendly overview of hours, daily submissions, and weekly submissions. </p> </div> <button onClick={handlePrint} className="rounded-lg bg-ink-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink-700 print:hidden" > Print / Save PDF </button> </div> </section> <section className="grid gap-4 md:grid-cols-4 print:grid-cols-4"> <MetricCard label="Approved Hours" value={summary.approvedAttendanceHours.toFixed(2)} accent="emerald" /> <MetricCard label="Attendance Logs" value={String(summary.totalAttendanceRecords)} accent="indigo" /> <MetricCard label="Approved Daily" value={String(summary.approvedDailyReports)} accent="amber" /> <MetricCard label="Approved Weekly" value={String(summary.approvedWeeklyReports)} accent="rose" /> </section> <section className="rounded-lg border border-white/70 bg-white/80 p-5 shadow-soft backdrop-blur-xl print:hidden"> <div className="flex flex-wrap gap-2"> {([['summary', 'Summary'], ['attendance', 'Attendance'], ['daily', 'Daily Reports'], ['weekly', 'Weekly Reports']] as const).map(([value, label]) => ( <button key={value} onClick={() => setMode(value)} className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${ mode === value ? 'bg-ink-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }`} > {label} </button> ))} <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by trainee, program, or date" className="ml-auto min-w-[260px] flex-1 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm outline-none focus:border-ink-400" /> </div> </section> {loading ? ( <div className="rounded-lg border border-white/70 bg-white/80 p-10 text-center text-slate-600 shadow-soft backdrop-blur-xl"> Loading printable data... </div> ) : ( <> {(mode === 'summary' || mode === 'attendance') && ( <PrintSection title="Attendance Summary" subtitle="Approved logs with rendered hours"> <PrintTable headers={["Date", "Trainee", "Program", "Hours", "Approval"]} rows={filteredAttendance.map((item) => [ item.date, `${item.userProgram?.user?.first_name ?? ''} ${item.userProgram?.user?.last_name ?? ''}`.trim() || 'N/A', item.userProgram?.program?.name ?? 'N/A', Number(item.total_hours || 0).toFixed(2), item.approval_status, ])} emptyText="No attendance logs available." /> </PrintSection> )} {(mode === 'summary' || mode === 'daily') && ( <PrintSection title="Daily Report Summary" subtitle="Latest daily submissions and status"> <PrintTable headers={["Date", "Trainee", "Program", "Status"]} rows={filteredDaily.map((item) => [ item.report_date, `${item.userProgram?.user?.first_name ?? ''} ${item.userProgram?.user?.last_name ?? ''}`.trim() || 'N/A', item.userProgram?.program?.name ?? 'N/A', item.status, ])} emptyText="No daily reports available." /> </PrintSection> )} {(mode === 'summary' || mode === 'weekly') && ( <PrintSection title="Weekly Report Summary" subtitle="Weekly narrative report status overview"> <PrintTable headers={["Week", "Period", "Trainee", "Program", "Status"]} rows={filteredWeekly.map((item) => [ `Week ${item.week_number}`, `${item.start_date} - ${item.end_date}`, `${item.userProgram?.user?.first_name ?? ''} ${item.userProgram?.user?.last_name ?? ''}`.trim() || 'N/A', item.userProgram?.program?.name ?? 'N/A', item.status, ])} emptyText="No weekly reports available." /> </PrintSection> )} </> )} </div> ); } function MetricCard({ label, value, accent, }: { label: string; value: string; accent: 'emerald' | 'indigo' | 'amber' | 'rose'; }) { const accentMap = { emerald: ' text-black', indigo: ' text-black', amber: ' text-black', rose: ' text-black', }[accent]; return ( <div className={`rounded-lg border border-white/70 bg-black ${accentMap} p-5 shadow-soft print:shadow-none`}> <p className="text-sm opacity-70">{label}</p> <p className="mt-2 text-2xl font-black">{value}</p> </div> ); } function PrintSection({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) { return ( <section className="rounded-lg border border-white/70 bg-white/80 p-6 shadow-soft backdrop-blur-xl print:rounded-none print:border-0 print:bg-white print:p-0 print:shadow-none"> <div className="mb-4"> <h2 className="text-xl font-bold text-ink-900">{title}</h2> <p className="text-sm text-slate-500">{subtitle}</p> </div> {children} </section> ); } function PrintTable({ headers, rows, emptyText, }: { headers: string[]; rows: string[][]; emptyText: string; }) { return ( <div className="overflow-x-auto"> <table className="min-w-full divide-y divide-slate-200 text-sm print:text-[11px]"> <thead className="bg-slate-50/80 text-slate-500 print:bg-transparent"> <tr> {headers.map((header) => ( <th key={header} className="px-4 py-3 text-left font-medium"> {header} </th> ))} </tr> </thead> <tbody className="divide-y divide-slate-100 bg-white"> {rows.map((row, rowIndex) => ( <tr key={`${rowIndex}-${row.join('-')}`}> {row.map((cell, cellIndex) => ( <td key={`${rowIndex}-${cellIndex}`} className="px-4 py-3 text-slate-700"> {cell} </td> ))} </tr> ))} {rows.length === 0 ? ( <tr> <td className="px-4 py-8 text-center text-slate-500" colSpan={headers.length}> {emptyText} </td> </tr> ) : null} </tbody> </table> </div> ); }
+import { useEffect, useMemo, useState } from 'react';
+import Button from '../../components/ui/Button';
+import PageHeader from '../../components/ui/PageHeader';
+import {
+  calculateCompletedHours,
+  calculateDtrHours,
+  formatHours,
+  loadOjtData,
+  saveOjtData,
+  type OjtData,
+} from '../../features/studentOjt/ojtStorage';
 
+export default function PrintableReportsPage() {
+  const [data, setData] = useState<OjtData>(() => loadOjtData());
+  const [signatureName, setSignatureName] = useState('');
+
+  useEffect(() => {
+    const current = loadOjtData();
+    setData(current);
+    setSignatureName(current.dtrEntries.at(-1)?.signatureName || current.profile.studentName || '');
+  }, []);
+
+  const entries = useMemo(() => [...data.dtrEntries].sort((a, b) => a.date.localeCompare(b.date)), [data.dtrEntries]);
+  const completedHours = calculateCompletedHours(entries);
+  const remainingHours = Math.max(data.profile.requiredHours - completedHours, 0);
+
+  const saveSignatureToRows = () => {
+    const nextData = {
+      ...data,
+      dtrEntries: data.dtrEntries.map((entry) => ({ ...entry, signatureName })),
+    };
+    saveOjtData(nextData);
+    setData(nextData);
+  };
+
+  const printDtr = () => {
+    saveSignatureToRows();
+    window.print();
+  };
+
+  return (
+    <div className="space-y-6 print:space-y-3">
+      <div className="print:hidden">
+        <PageHeader
+          title="Printable DTR"
+          description="Generate a print-ready Daily Time Record with signature fields."
+          actions={
+            <Button type="button" onClick={printDtr} variant="primary" size="md">
+              Print / Save PDF
+            </Button>
+          }
+        />
+      </div>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm print:hidden">
+        <label className="block max-w-xl">
+          <span className="mb-2 block text-sm font-semibold text-slate-800">Signature name to apply to DTR rows</span>
+          <input
+            className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            value={signatureName}
+            onChange={(event) => setSignatureName(event.target.value)}
+            placeholder="Type your full name"
+          />
+        </label>
+        <p className="mt-3 text-sm text-slate-600">This name is printed as the student signature reference. The sheet also includes blank signature lines for handwritten approval.</p>
+      </section>
+
+      <main className="rounded-xl border border-slate-300 bg-white p-8 shadow-sm print:rounded-none print:border-0 print:p-0 print:shadow-none">
+        <header className="text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-600">Daily Time Record</p>
+          <h1 className="mt-2 text-2xl font-bold text-slate-950">On-the-Job Training Hours</h1>
+          <p className="mt-1 text-sm text-slate-600">{data.profile.school || 'School name'} | {data.profile.course || 'Course / section'}</p>
+        </header>
+
+        <section className="mt-8 grid gap-3 text-sm sm:grid-cols-2 print:grid-cols-2">
+          <Info label="Student" value={data.profile.studentName || 'Student Trainee'} />
+          <Info label="Student no." value={data.profile.studentNumber || 'Not set'} />
+          <Info label="OJT site" value={data.profile.ojtSite || 'Not set'} />
+          <Info label="Supervisor" value={data.profile.supervisorName || 'Not set'} />
+          <Info label="Training dates" value={`${data.profile.startDate || 'Start'} to ${data.profile.endDate || 'End'}`} />
+          <Info label="Required hours" value={formatHours(data.profile.requiredHours)} />
+        </section>
+
+        <section className="mt-6 overflow-x-auto">
+          <table className="min-w-full border border-slate-400 text-left text-xs print:text-[10px]">
+            <thead className="bg-slate-100">
+              <tr>
+                <th className="border border-slate-400 px-2 py-2 font-bold">Date</th>
+                <th className="border border-slate-400 px-2 py-2 font-bold">Time In</th>
+                <th className="border border-slate-400 px-2 py-2 font-bold">Time Out</th>
+                <th className="border border-slate-400 px-2 py-2 font-bold">Break</th>
+                <th className="border border-slate-400 px-2 py-2 font-bold">Hours</th>
+                <th className="border border-slate-400 px-2 py-2 font-bold">Activities</th>
+                <th className="border border-slate-400 px-2 py-2 font-bold">Student Signature</th>
+              </tr>
+            </thead>
+            <tbody>
+              {entries.map((entry) => (
+                <tr key={entry.id} className="align-top">
+                  <td className="border border-slate-400 px-2 py-2">{entry.date}</td>
+                  <td className="border border-slate-400 px-2 py-2">{entry.timeIn}</td>
+                  <td className="border border-slate-400 px-2 py-2">{entry.timeOut}</td>
+                  <td className="border border-slate-400 px-2 py-2">{entry.breakMinutes} min</td>
+                  <td className="border border-slate-400 px-2 py-2">{formatHours(calculateDtrHours(entry))}</td>
+                  <td className="border border-slate-400 px-2 py-2">{entry.activities}</td>
+                  <td className="border border-slate-400 px-2 py-2">{entry.signatureName || signatureName || data.profile.studentName}</td>
+                </tr>
+              ))}
+              {!entries.length ? (
+                <tr>
+                  <td className="border border-slate-400 px-2 py-8 text-center text-slate-500" colSpan={7}>No DTR entries yet.</td>
+                </tr>
+              ) : null}
+            </tbody>
+            <tfoot className="bg-slate-100">
+              <tr>
+                <td className="border border-slate-400 px-2 py-2 font-bold" colSpan={4}>Total rendered hours</td>
+                <td className="border border-slate-400 px-2 py-2 font-bold">{formatHours(completedHours)}</td>
+                <td className="border border-slate-400 px-2 py-2 font-bold">Remaining: {formatHours(remainingHours)}</td>
+                <td className="border border-slate-400 px-2 py-2" />
+              </tr>
+            </tfoot>
+          </table>
+        </section>
+
+        <section className="mt-12 grid gap-10 text-center text-sm sm:grid-cols-3 print:grid-cols-3">
+          <SignatureLine label="Student signature" value={signatureName || data.profile.studentName} />
+          <SignatureLine label="OJT supervisor" value={data.profile.supervisorName} />
+          <SignatureLine label="School coordinator" value="" />
+        </section>
+      </main>
+    </div>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grid grid-cols-[8rem_1fr] border-b border-slate-300 py-2">
+      <span className="font-semibold text-slate-600">{label}</span>
+      <span className="font-medium text-slate-950">{value}</span>
+    </div>
+  );
+}
+
+function SignatureLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="min-h-8 font-semibold text-slate-900">{value}</div>
+      <div className="mt-2 border-t border-slate-700 pt-2 text-xs font-semibold uppercase tracking-wider text-slate-600">{label}</div>
+    </div>
+  );
+}
