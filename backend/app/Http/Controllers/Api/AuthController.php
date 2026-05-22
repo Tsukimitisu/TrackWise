@@ -34,8 +34,12 @@ class AuthController extends Controller
 
         $user->sendEmailVerificationNotification();
 
+        $mailWarning = config('mail.default') === 'log'
+            ? ' Email is currently configured for local logs, so the verification email will not reach Gmail until SMTP credentials are added.'
+            : '';
+
         return response()->json([
-            'message' => 'Account created. Check your Gmail and click "Verify my account" to sign in automatically.',
+            'message' => 'Account created. Check your Gmail and click "Verify my account" to sign in automatically.' . $mailWarning,
             'email' => $user->email,
         ], 201);
     }
