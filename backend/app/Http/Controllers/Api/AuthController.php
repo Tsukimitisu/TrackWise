@@ -35,7 +35,7 @@ class AuthController extends Controller
         $user->sendEmailVerificationNotification();
 
         return response()->json([
-            'message' => 'Account created. Check your email to verify your account before signing in.',
+            'message' => 'Account created. Check your Gmail and click "Verify my account" to sign in automatically.',
             'email' => $user->email,
         ], 201);
     }
@@ -126,7 +126,9 @@ class AuthController extends Controller
             event(new Verified($user));
         }
 
-        return redirect()->away("{$frontendUrl}/verify-email?status=verified&email=" . urlencode($user->email));
+        $token = $user->createToken('trackwise-email-verification')->plainTextToken;
+
+        return redirect()->away("{$frontendUrl}/verify-email?status=verified&email=" . urlencode($user->email) . '&token=' . urlencode($token));
     }
 
     public function resendVerification(Request $request): JsonResponse

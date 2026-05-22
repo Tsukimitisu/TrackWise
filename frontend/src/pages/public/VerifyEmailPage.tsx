@@ -1,23 +1,28 @@
-import { FormEvent, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import client from '../../api/client';
+import { useAuth } from '../../auth/AuthContext';
 import ThemeToggle from '../../components/ThemeToggle';
 import Surface from '../../components/ui/Surface';
 import { FieldShell, TextField } from '../../components/ui/TextField';
 
 export default function VerifyEmailPage() {
+  const { setSession } = useAuth();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const status = searchParams.get('status') ?? 'pending';
+  const token = searchParams.get('token');
   const initialEmail = useMemo(() => searchParams.get('email') ?? '', [searchParams]);
   const [email, setEmail] = useState(initialEmail);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [autoSigningIn, setAutoSigningIn] = useState(status === 'verified' && Boolean(token));
 
   const copy = {
     verified: {
       title: 'Email verified',
-      body: 'Your account is ready. You can sign in now.',
+      body: token ? 'Your Gmail is verified. Signing you in now...' : 'Your account is ready. You can sign in now.',
     },
     expired: {
       title: 'Verification link expired',
@@ -52,6 +57,28 @@ export default function VerifyEmailPage() {
     }
   };
 
+  useEffect(() => {
+    if (status !== 'verified' || !token) return;
+
+    const finishAutoLogin = async () => {
+      setAutoSigningIn(true);
+      setError(null);
+
+      try {
+        localStorage.setItem('trackwise_token', token);
+        const response = await client.get('/auth/me');
+        setSession(response.data, token);
+        navigate('/app', { replace: true });
+      } catch {
+        localStorage.removeItem('trackwise_token');
+        setError('Your email is verified, but automatic sign-in failed. Please sign in manually.');
+        setAutoSigningIn(false);
+      }
+    };
+
+    void finishAutoLogin();
+  }, [navigate, setSession, status, token]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-100 px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-md justify-end">
@@ -69,9 +96,15 @@ export default function VerifyEmailPage() {
 
         <Surface className="border border-blue-100 bg-white/95 p-6 shadow-[0_20px_60px_rgba(59,130,246,0.12)] sm:p-7">
           {status === 'verified' ? (
-            <Link to="/login" className="inline-flex w-full justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">
-              Sign in
-            </Link>
+            autoSigningIn ? (
+              <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700">
+                Signing you in automatically...
+              </div>
+            ) : (
+              <Link to="/login" className="inline-flex w-full justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">
+                Sign in
+              </Link>
+            )
           ) : (
             <form onSubmit={resend} className="space-y-4">
               <FieldShell label="Email">
@@ -84,6 +117,8 @@ export default function VerifyEmailPage() {
               </button>
             </form>
           )}
+
+          {status === 'verified' && error ? <p className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p> : null}
 
           <Link to="/login" className="mt-4 inline-flex text-sm font-medium text-blue-700 transition-colors hover:text-blue-800">
             Back to sign in

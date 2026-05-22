@@ -25,7 +25,7 @@ export default function RegisterPage() {
 
     try {
       const response = await client.post('/auth/register', form);
-      setMessage(response.data.message ?? 'Account created. Check your email to verify your account before signing in.');
+      setMessage(response.data.message ?? 'Account created. Check your Gmail and click "Verify my account" to sign in automatically.');
     } catch (requestError: any) {
       setError(requestError.response?.data?.message ?? 'Unable to create the account.');
     } finally {
@@ -103,7 +103,7 @@ export default function RegisterPage() {
                 </span>
                 <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Register</h1>
                 <p className="mt-3 max-w-lg text-sm leading-7 text-slate-600 sm:text-base">
-                  Create your student account. You can start tracking your OJT without joining an organization.
+                  Create your student account, then verify it from Gmail before accessing your OJT tracker.
                 </p>
               </div>
 
