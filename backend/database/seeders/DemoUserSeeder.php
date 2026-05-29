@@ -9,6 +9,7 @@ use App\Models\UserProgram;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DemoUserSeeder extends Seeder
 {
@@ -34,7 +35,9 @@ class DemoUserSeeder extends Seeder
             'Viewer',
         ])->get()->keyBy('name');
 
-        $password = Hash::make('Password123!');
+        $provided = env('DEMO_PASSWORD');
+        $plainPassword = $provided ?: Str::random(12);
+        $password = Hash::make($plainPassword);
 
         $accounts = [
             ['Super', 'Admin', 'superadmin@trackwise.test', 'Super Admin', null],
@@ -58,6 +61,10 @@ class DemoUserSeeder extends Seeder
                     'email_verified_at' => now(),
                 ]
             );
+        }
+
+        if ($this->command ?? false) {
+            $this->command->info('Demo user password: ' . $plainPassword . ($provided ? ' (from DEMO_PASSWORD env)' : ' (generated)'));
         }
 
         $program = Program::query()->firstOrCreate(
