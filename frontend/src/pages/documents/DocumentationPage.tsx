@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import PageHeader from '../../components/ui/PageHeader';
 import {
@@ -79,7 +80,12 @@ export default function DocumentationPage() {
     <div className="space-y-8 animate-fade-in">
       <PageHeader
         title="OJT Documentation"
-        description="Track photos, certificates, memos, and other proof of your OJT activities."
+        description="Upload clear proof of work, add professional captions, and keep every item attached to your OJT record."
+        actions={
+          <Link to="/app/documents/upload" className="inline-flex items-center gap-2 rounded-xl bg-[#10233f] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#18345b] hover:text-white">
+            <span className="text-lg leading-none">+</span> Upload or capture photo
+          </Link>
+        }
       />
 
       <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
