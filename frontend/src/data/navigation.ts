@@ -23,70 +23,51 @@ export interface NavItem {
   icon: NavIconName;
 }
 
-const commonItems: NavItem[] = [
-  { label: 'Dashboard', to: '/app', icon: 'dashboard' },
-  { label: 'Notifications', to: '/app/notifications', icon: 'bell' },
-];
+const dashboard: NavItem = { label: 'Dashboard', to: '/app', icon: 'dashboard' };
 
 const roleNav: Record<RoleName, NavItem[]> = {
   'Super Admin': [
-    ...commonItems,
-    { label: 'Analytics', to: '/app/analytics', icon: 'chart' },
-    { label: 'Admin Statistics', to: '/app/admin-statistics', icon: 'spark' },
-    { label: 'Organizations', to: '/app/organizations', icon: 'building' },
+    dashboard,
     { label: 'Users', to: '/app/users', icon: 'users' },
-    { label: 'Programs', to: '/app/programs', icon: 'layers' },
-    { label: 'Progress Tracking', to: '/app/progress', icon: 'checklist' },
-    { label: 'Reports', to: '/app/reports', icon: 'clipboard' },
-    { label: 'System Settings', to: '/app/settings', icon: 'settings' },
+    { label: 'Companies', to: '/app/organizations', icon: 'building' },
+    { label: 'OJT Requirements', to: '/app/programs', icon: 'layers' },
+    { label: 'System Records', to: '/app/admin-statistics', icon: 'chart' },
+    { label: 'Settings', to: '/app/settings', icon: 'settings' },
   ],
   'Organization Admin': [
-    ...commonItems,
-    { label: 'Analytics', to: '/app/analytics', icon: 'chart' },
-    { label: 'Admin Statistics', to: '/app/admin-statistics', icon: 'spark' },
-    { label: 'Manage Users', to: '/app/users', icon: 'users' },
-    { label: 'Manage Programs', to: '/app/programs', icon: 'layers' },
-    { label: 'Assignments', to: '/app/assignments', icon: 'clipboard' },
-    { label: 'Attendance Records', to: '/app/attendance', icon: 'calendar' },
-    { label: 'Progress Tracking', to: '/app/progress', icon: 'checklist' },
-    { label: 'Reports', to: '/app/reports', icon: 'clipboard' },
-    { label: 'Documents', to: '/app/documents', icon: 'file' },
+    dashboard,
+    { label: 'Users', to: '/app/users', icon: 'users' },
+    { label: 'Companies', to: '/app/organizations', icon: 'building' },
+    { label: 'OJT Requirements', to: '/app/programs', icon: 'layers' },
+    { label: 'System Records', to: '/app/admin-statistics', icon: 'chart' },
     { label: 'Settings', to: '/app/settings', icon: 'settings' },
   ],
   Coordinator: [
-    ...commonItems,
-    { label: 'Analytics', to: '/app/analytics', icon: 'chart' },
-    { label: 'Admin Statistics', to: '/app/admin-statistics', icon: 'spark' },
-    { label: 'Assigned Trainees', to: '/app/assigned-trainees', icon: 'users' },
-    { label: 'DTR Monitoring', to: '/app/attendance', icon: 'calendar' },
-    { label: 'Daily Reports', to: '/app/reports/daily', icon: 'file' },
-    { label: 'Weekly Reports', to: '/app/reports/weekly', icon: 'clipboard' },
-    { label: 'Progress Tracking', to: '/app/progress', icon: 'checklist' },
-    { label: 'Printable Reports', to: '/app/printables', icon: 'badge' },
+    dashboard,
+    { label: 'Students', to: '/app/assigned-trainees', icon: 'users' },
+    { label: 'Companies', to: '/app/organizations', icon: 'building' },
+    { label: 'Progress Monitoring', to: '/app/progress', icon: 'checklist' },
+    { label: 'Reports', to: '/app/printables', icon: 'clipboard' },
   ],
   Supervisor: [
-    ...commonItems,
-    { label: 'Assigned Trainees', to: '/app/assigned-trainees', icon: 'users' },
-    { label: 'Pending DTR Approval', to: '/app/attendance', icon: 'calendar' },
-    { label: 'Pending Daily Reports', to: '/app/reports/daily', icon: 'file' },
-    { label: 'Pending Weekly Reports', to: '/app/reports/weekly', icon: 'clipboard' },
-    { label: 'Evaluations', to: '/app/evaluations', icon: 'checklist' },
-    { label: 'Documentation Review', to: '/app/documents', icon: 'file' },
+    dashboard,
+    { label: 'Assigned Students', to: '/app/assigned-trainees', icon: 'users' },
+    { label: 'Submitted Reports', to: '/app/reports/daily', icon: 'file' },
+    { label: 'Attendance Records', to: '/app/attendance', icon: 'calendar' },
+    { label: 'Feedback', to: '/app/evaluations', icon: 'checklist' },
   ],
   Student: [
-    { label: 'Dashboard', to: '/app', icon: 'dashboard' },
-    { label: 'OJT Setup', to: '/app/ojt-setup', icon: 'settings' },
-    { label: 'Time In / Time Out', to: '/app/time-in-out', icon: 'clock' },
-    { label: 'DTR Table', to: '/app/attendance', icon: 'calendar' },
-    { label: 'Printable DTR', to: '/app/printables', icon: 'badge' },
-    { label: 'Daily Reports', to: '/app/reports/daily', icon: 'file' },
-    { label: 'Narrative Reports', to: '/app/reports/weekly', icon: 'clipboard' },
+    dashboard,
+    { label: 'My OJT Profile', to: '/app/ojt-setup', icon: 'user' },
+    { label: 'Attendance', to: '/app/attendance', icon: 'clock' },
+    { label: 'Daily Logs', to: '/app/reports/daily', icon: 'file' },
     { label: 'Documentation', to: '/app/documents', icon: 'file' },
-    { label: 'Profile', to: '/app/profile', icon: 'user' },
+    { label: 'Narrative Reports', to: '/app/reports/weekly', icon: 'clipboard' },
+    { label: 'Progress', to: '/app/progress', icon: 'checklist' },
   ],
-  Viewer: [...commonItems, { label: 'Read Only Reports', to: '/app/reports', icon: 'clipboard' }],
+  Viewer: [dashboard, { label: 'Reports', to: '/app/reports', icon: 'clipboard' }],
 };
 
 export function getNavigation(role?: RoleName) {
-  return role ? roleNav[role] : commonItems;
+  return role ? roleNav[role] : [dashboard];
 }
