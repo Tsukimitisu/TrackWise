@@ -2,12 +2,16 @@ export interface StudentOjtProfile {
   studentName: string;
   studentNumber: string;
   course: string;
+  yearLevel: string;
   school: string;
   ojtSite: string;
+  department: string;
   supervisorName: string;
   requiredHours: number;
   startDate: string;
   endDate: string;
+  contactNumber: string;
+  email: string;
 }
 
 export interface DtrEntry {
@@ -16,6 +20,7 @@ export interface DtrEntry {
   timeIn: string;
   timeOut: string;
   breakMinutes: number;
+  attendanceStatus: 'Present' | 'Late' | 'Half day' | 'Absent';
   activities: string;
   remarks: string;
   signatureName: string;
@@ -54,12 +59,16 @@ export const defaultProfile: StudentOjtProfile = {
   studentName: 'Student Trainee',
   studentNumber: '',
   course: '',
+  yearLevel: '',
   school: '',
   ojtSite: '',
+  department: '',
   supervisorName: '',
   requiredHours: 486,
   startDate: '',
   endDate: '',
+  contactNumber: '',
+  email: '',
 };
 
 export const defaultOjtData: OjtData = {
