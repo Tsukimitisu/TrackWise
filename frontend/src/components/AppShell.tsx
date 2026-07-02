@@ -2,170 +2,150 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { getNavigation, type NavIconName } from '../data/navigation';
-import ThemeToggle from './ThemeToggle';
-import Button from './ui/Button';
 
 const iconPaths: Record<NavIconName, string[]> = {
-  dashboard: ['M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6.5h-5V21H5a1 1 0 0 1-1-1z'],
-  bell: ['M6 8a6 6 0 1 1 12 0c0 4 1.5 5 2.5 6.5H3.5C4.5 13 6 12 6 8', 'M10 19a2 2 0 0 0 4 0'],
-  chart: ['M5 19V5', 'M5 19h14', 'M9 15l2-4 3 2 4-7'],
-  spark: ['M12 3 13.8 8.2 19 10 13.8 11.8 12 17 10.2 11.8 5 10 10.2 8.2z'],
-  building: ['M4 21V5a1 1 0 0 1 1-1h6v17', 'M11 21V4h8a1 1 0 0 1 1 1v16', 'M8 8h2M8 12h2M15 8h2M15 12h2'],
-  users: ['M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm8 1a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5', 'M3.5 20a4.5 4.5 0 0 1 9 0', 'M12 20a4 4 0 0 1 8 0'],
-  layers: ['M12 4 21 9l-9 5-9-5 9-5z', 'M3 12l9 5 9-5', 'M3 16l9 5 9-5'],
-  clipboard: ['M9 4h6a1 1 0 0 1 1 1v1h1.5A1.5 1.5 0 0 1 19 7.5v11A1.5 1.5 0 0 1 17.5 20h-11A1.5 1.5 0 0 1 5 18.5v-11A1.5 1.5 0 0 1 6.5 6H8V5a1 1 0 0 1 1-1z', 'M9 6h6'],
-  calendar: ['M7 3v3M17 3v3M4.5 8h15', 'M6 6.5h12A1.5 1.5 0 0 1 19.5 8v11A1.5 1.5 0 0 1 18 20H6a1.5 1.5 0 0 1-1.5-1.5V8A1.5 1.5 0 0 1 6 6.5z', 'M8 11h2M12 11h2M16 11h2M8 15h2M12 15h2'],
-  file: ['M7 3h6l4 4v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z', 'M13 3v5h5'],
-  checklist: ['M7 7h10M7 12h10M7 17h10', 'M4.5 7 6 8.5 8.5 6', 'M4.5 12 6 13.5 8.5 11', 'M4.5 17 6 18.5 8.5 16'],
-  clock: ['M12 7v5l3 2', 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0'],
-  badge: ['M12 3 14.5 6.5 19 7.5 16 11 16.5 16 12 13.8 7.5 16 8 11 5 7.5 9.5 6.5z'],
-  settings: ['M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm8 4-2.2.7a6.9 6.9 0 0 1-.4 1l1.2 2-2 2-2-1.2a6.9 6.9 0 0 1-1 .4L12 20l-1.6-2.1a6.9 6.9 0 0 1-1-.4l-2 1.2-2-2 1.2-2a6.9 6.9 0 0 1-.4-1L4 12l2.2-.7a6.9 6.9 0 0 1 .4-1l-1.2-2 2-2 2 1.2a6.9 6.9 0 0 1 1-.4L12 4l1.6 2.1a6.9 6.9 0 0 1 1 .4l2-1.2 2 2-1.2 2a6.9 6.9 0 0 1 .4 1z'],
-  user: ['M12 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4z', 'M5 20a7 7 0 0 1 14 0'],
+  dashboard: ['M4 13h6V4H4v9Zm0 7h6v-4H4v4Zm10 0h6v-9h-6v9Zm0-13h6V4h-6v3Z'],
+  bell: ['M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9', 'M10 21h4'],
+  chart: ['M4 20V10', 'M10 20V4', 'M16 20v-7', 'M22 20H2'],
+  spark: ['m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z'],
+  building: ['M4 21V5h10v16', 'M14 9h6v12', 'M8 9h2M8 13h2M8 17h2M17 13h1M17 17h1'],
+  users: ['M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z', 'M2 21a7 7 0 0 1 14 0', 'M16 4a3 3 0 0 1 0 6', 'M17 14a6 6 0 0 1 5 6'],
+  layers: ['m12 3 9 5-9 5-9-5 9-5Z', 'm3 12 9 5 9-5', 'm3 16 9 5 9-5'],
+  clipboard: ['M9 5h6', 'M9 3h6v4H9V3Z', 'M7 5H5v16h14V5h-2', 'M8 12h8M8 16h6'],
+  calendar: ['M7 3v4M17 3v4M4 9h16', 'M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z'],
+  file: ['M6 3h8l4 4v14H6V3Z', 'M14 3v5h5', 'M9 13h6M9 17h6'],
+  checklist: ['m4 7 2 2 3-4', 'M11 7h9', 'm4 14 2 2 3-4', 'M11 14h9', 'M11 20h9'],
+  clock: ['M12 7v5l3 2', 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
+  badge: ['M12 3 15 6l4 .5-1 4 2 3.5-3.5 2 .5 4-4-.5L12 22l-2.5-3.5-4 .5.5-4-3.5-2 2-3.5-1-4L9 6l3-3Z'],
+  settings: ['M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z', 'M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H3v-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6V3h4v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1v4H21a1.7 1.7 0 0 0-1.6 1Z'],
+  user: ['M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z', 'M4 21a8 8 0 0 1 16 0'],
 };
 
-function NavIcon({ name }: { name: NavIconName }) {
+function Icon({ name, className = 'h-5 w-5' }: { name: NavIconName; className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {iconPaths[name].map((path) => (
-        <path key={path} d={path} />
-      ))}
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {iconPaths[name].map((path) => <path key={path} d={path} />)}
     </svg>
   );
 }
 
+const roleLabel: Record<string, string> = {
+  Student: 'Student workspace',
+  Supervisor: 'Supervisor workspace',
+  Coordinator: 'School coordinator',
+  'Super Admin': 'System administration',
+  'Organization Admin': 'System administration',
+  Viewer: 'Read-only workspace',
+};
+
 export default function AppShell() {
   const { user, clearSession } = useAuth();
   const navigation = getNavigation(user?.role.name);
-  const isStudent = user?.role.name === 'Student';
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
 
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [location.pathname]);
+  useEffect(() => setMobileOpen(false), [location.pathname]);
 
-  const initials = useMemo(() => {
-    const first = user?.first_name?.[0] ?? 'T';
-    const last = user?.last_name?.[0] ?? 'W';
-    return `${first}${last}`.toUpperCase();
-  }, [user?.first_name, user?.last_name]);
+  const initials = useMemo(
+    () => `${user?.first_name?.[0] ?? 'T'}${user?.last_name?.[0] ?? 'W'}`.toUpperCase(),
+    [user?.first_name, user?.last_name],
+  );
+
+  const currentPage = [...navigation]
+    .sort((a, b) => b.to.length - a.to.length)
+    .find((item) => item.to === '/app' ? location.pathname === '/app' : location.pathname.startsWith(item.to));
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
-      {/* Mobile overlay */}
-      {mobileOpen && (
-        <button 
-          type="button" 
-          aria-label="Close navigation" 
-          onClick={() => setMobileOpen(false)} 
-          className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-sm lg:hidden animate-fade-in" 
+    <div className="min-h-screen bg-[#f6f8fb] text-slate-950">
+      {mobileOpen ? (
+        <button
+          type="button"
+          aria-label="Close navigation"
+          onClick={() => setMobileOpen(false)}
+          className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-sm lg:hidden"
         />
-      )}
+      ) : null}
 
-      <div className="flex min-h-screen">
-        {/* Sidebar - Fixed on left */}
-        <aside
-          className={`fixed inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 bg-gradient-to-b from-blue-50 via-blue-50 to-blue-100 border-r border-blue-200 ${
-            collapsed ? 'w-20' : 'w-64'
-          } ${mobileOpen ? 'translate-x-0 shadow-lg' : '-translate-x-full lg:translate-x-0'}`}
-        >
-          {/* Sidebar Header */}
-          <div className="flex items-center justify-between gap-3 px-6 py-6 border-b border-blue-200">
-            <Link to="/app" className="flex items-center gap-3 min-w-0">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-xs font-bold text-white shrink-0 shadow-md">TW</div>
-              {!collapsed && <span className="font-bold text-base tracking-tight text-blue-900">TrackWise</span>}
-            </Link>
-            {/* Close button for mobile */}
-            <button
-              type="button"
-              onClick={() => setMobileOpen(false)}
-              className="lg:hidden inline-flex h-8 w-8 items-center justify-center rounded-lg text-blue-600 hover:bg-blue-200 transition-colors"
-            >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[272px] flex-col border-r border-slate-800 bg-[#10233f] text-white transition-transform duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <div className="flex h-20 items-center justify-between border-b border-white/10 px-6">
+          <Link to="/app" className="flex items-center gap-3 text-white hover:text-white">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-teal-400 text-[#10233f] shadow-lg shadow-teal-950/20">
+              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12.5 9.2 17 19 7" />
+                <path d="M4 4h16v16H4z" />
               </svg>
-            </button>
-          </div>
+            </span>
+            <span>
+              <span className="block text-lg font-bold tracking-tight">TrackWise</span>
+              <span className="block text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">OJT Management</span>
+            </span>
+          </Link>
+          <button type="button" onClick={() => setMobileOpen(false)} className="grid h-9 w-9 place-items-center rounded-lg text-slate-300 hover:bg-white/10 lg:hidden" aria-label="Close navigation">
+            <span className="text-2xl leading-none">×</span>
+          </button>
+        </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto space-y-1 px-3 py-4">
-            {navigation.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `group flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'bg-white text-blue-600 shadow-md'
-                      : 'text-blue-700 hover:bg-white/50 hover:text-blue-900'
-                  } ${collapsed ? 'justify-center px-3' : ''}`
-                }
-                title={collapsed ? item.label : undefined}
-              >
-                <NavIcon name={item.icon} />
-                {!collapsed && <span>{item.label}</span>}
-              </NavLink>
-            ))}
-          </nav>
+        <div className="px-4 pt-6">
+          <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Workspace</p>
+        </div>
+        <nav className="mt-3 flex-1 space-y-1 overflow-y-auto px-4">
+          {navigation.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/app'}
+              className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${
+                isActive
+                  ? 'bg-teal-400 text-[#10233f] shadow-sm'
+                  : 'text-slate-300 hover:bg-white/[0.07] hover:text-white'
+              }`}
+            >
+              <Icon name={item.icon} />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
 
-          {/* Sidebar Footer - User Profile */}
-          <div className="border-t border-blue-200 px-3 py-4 bg-blue-50">
-            <div className={`flex items-center gap-3 rounded-lg p-3 hover:bg-white/60 transition-colors cursor-pointer ${collapsed ? 'justify-center' : ''}`}>
-              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-xs font-bold text-white shrink-0 shadow-sm">{initials}</div>
-              {!collapsed && (
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-blue-900 truncate">{user?.first_name} {user?.last_name}</p>
-                  <p className="text-xs text-blue-600 truncate">{user?.role.name}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </aside>
+        <div className="border-t border-white/10 p-4">
+          <Link to="/app/profile" className="flex items-center gap-3 rounded-xl p-3 text-white hover:bg-white/[0.07] hover:text-white">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 text-sm font-bold text-teal-300">{initials}</span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-semibold">{user?.first_name} {user?.last_name}</span>
+              <span className="block truncate text-xs text-slate-400">{user?.role.name}</span>
+            </span>
+            <span className="text-slate-500">›</span>
+          </Link>
+        </div>
+      </aside>
 
-        {/* Main Content */}
-        <main className={`flex-1 flex flex-col transition-all duration-300 ${collapsed ? 'lg:ml-20' : 'lg:ml-64'} ml-0`}>
-          {/* Top Navigation */}
-          <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between gap-4 px-4 py-4 lg:px-8 lg:py-5">
-              <div className="flex items-center gap-3">
-                {/* Mobile menu button */}
-                <button
-                  type="button"
-                  onClick={() => setMobileOpen(true)}
-                  className="lg:hidden inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-gray-50 transition-colors"
-                >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
-                <div className="hidden sm:block">
-                  <h1 className="text-xl font-bold text-slate-900">{isStudent ? 'My OJT Tracker' : user?.organization?.name ?? 'TrackWise'}</h1>
-                </div>
-              </div>
-
-              {/* Right Actions */}
-              <div className="flex items-center gap-3">
-                <ThemeToggle />
-                <button
-                  type="button"
-                  onClick={clearSession}
-                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  <span className="hidden sm:inline">Logout</span>
-                </button>
+      <div className="min-h-screen lg:pl-[272px]">
+        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+          <div className="flex h-20 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+            <div className="flex min-w-0 items-center gap-3">
+              <button type="button" onClick={() => setMobileOpen(true)} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 lg:hidden" aria-label="Open navigation">
+                <span className="text-xl">☰</span>
+              </button>
+              <div className="min-w-0">
+                <p className="truncate text-lg font-bold text-slate-950">{currentPage?.label ?? 'TrackWise'}</p>
+                <p className="hidden text-xs text-slate-500 sm:block">{roleLabel[user?.role.name ?? ''] ?? 'OJT workspace'}</p>
               </div>
             </div>
-          </div>
 
-          {/* Page Content */}
-          <div className="flex-1 px-4 py-6 lg:px-8 lg:py-8 bg-gradient-to-b from-white to-blue-50">
-            <div className="animate-fade-in">
-              <Outlet />
+            <div className="flex items-center gap-2">
+              <Link to="/app/notifications" aria-label="Notifications" className="relative grid h-10 w-10 place-items-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                <Icon name="bell" className="h-5 w-5" />
+                <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-white bg-amber-500" />
+              </Link>
+              <button type="button" onClick={clearSession} className="hidden rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 sm:block">
+                Sign out
+              </button>
             </div>
+          </div>
+        </header>
+
+        <main className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <div className="mx-auto max-w-[1440px]">
+            <Outlet />
           </div>
         </main>
       </div>
