@@ -35,7 +35,7 @@ class DailyReportController extends Controller
             ->orWhereHas('userProgram.program', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%");
             })
-            ->orWhere('tasks', 'like', "%{$search}%");
+            ->orWhere('tasks_done', 'like', "%{$search}%");
         }
 
         if ($request->has('report_date_from') && $request->has('report_date_to')) {
@@ -71,8 +71,8 @@ class DailyReportController extends Controller
 
     public function submit(DailyReport $dailyReport): JsonResponse
     {
-        if ($dailyReport->status !== 'draft') {
-            return response()->json(['message' => 'Only draft reports can be submitted'], 422);
+        if (! in_array($dailyReport->status, ['draft', 'needs_revision'])) {
+            return response()->json(['message' => 'Only draft or revised reports can be submitted'], 422);
         }
 
         $dailyReport->update([
