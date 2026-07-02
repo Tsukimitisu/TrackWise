@@ -13,12 +13,22 @@ import {
 
 export default function AttendancePage() {
   const [data, setData] = useState<OjtData>(() => loadOjtData());
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('');
 
   useEffect(() => {
     setData(loadOjtData());
   }, []);
 
   const entries = useMemo(() => [...data.dtrEntries].sort((a, b) => a.date.localeCompare(b.date)), [data.dtrEntries]);
+  const filteredEntries = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return entries.filter((entry) => {
+      const matchesQuery = !query || entry.date.includes(query) || entry.activities.toLowerCase().includes(query) || entry.remarks.toLowerCase().includes(query);
+      const matchesStatus = !status || (entry.attendanceStatus || 'Present') === status;
+      return matchesQuery && matchesStatus;
+    });
+  }, [entries, search, status]);
   const completedHours = calculateCompletedHours(entries);
   const remainingHours = Math.max(data.profile.requiredHours - completedHours, 0);
 
@@ -52,12 +62,31 @@ export default function AttendancePage() {
       </section>
 
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-bold text-slate-900">Daily Time Record</h2>
-          <p className="text-sm text-slate-600">Student: {data.profile.studentName || 'Not set'} | Required hours: {formatHours(data.profile.requiredHours)}</p>
+        <div className="border-b border-slate-200 px-6 py-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Daily Time Record</h2>
+              <p className="text-sm text-slate-600">Student: {data.profile.studentName || 'Not set'} | Required hours: {formatHours(data.profile.requiredHours)}</p>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search date or activity"
+                className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
+              />
+              <select value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
+                <option value="">All statuses</option>
+                <option>Present</option>
+                <option>Late</option>
+                <option>Half day</option>
+                <option>Absent</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        {entries.length ? (
+        {filteredEntries.length ? (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead className="bg-slate-50 text-left text-slate-600">
@@ -67,19 +96,31 @@ export default function AttendancePage() {
                   <th className="px-4 py-3 font-semibold">Time out</th>
                   <th className="px-4 py-3 font-semibold">Break</th>
                   <th className="px-4 py-3 font-semibold">Hours</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
                   <th className="px-4 py-3 font-semibold">Activities</th>
                   <th className="px-4 py-3 font-semibold">Signature</th>
                   <th className="px-4 py-3 font-semibold">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {entries.map((entry) => (
+                {filteredEntries.map((entry) => (
                   <tr key={entry.id} className="align-top">
                     <td className="px-4 py-3 font-medium text-slate-900">{entry.date}</td>
                     <td className="px-4 py-3 text-slate-700">{entry.timeIn}</td>
                     <td className="px-4 py-3 text-slate-700">{entry.timeOut}</td>
                     <td className="px-4 py-3 text-slate-700">{entry.breakMinutes} min</td>
                     <td className="px-4 py-3 font-semibold text-slate-900">{formatHours(calculateDtrHours(entry))}</td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${
+                        (entry.attendanceStatus || 'Present') === 'Present'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : (entry.attendanceStatus || 'Present') === 'Absent'
+                            ? 'bg-rose-50 text-rose-700'
+                            : 'bg-amber-50 text-amber-700'
+                      }`}>
+                        {entry.attendanceStatus || 'Present'}
+                      </span>
+                    </td>
                     <td className="max-w-md px-4 py-3 text-slate-700">{entry.activities}</td>
                     <td className="px-4 py-3 text-slate-700">{entry.signatureName || data.profile.studentName || 'Unsigned'}</td>
                     <td className="px-4 py-3">
@@ -94,14 +135,14 @@ export default function AttendancePage() {
                 <tr>
                   <td className="px-4 py-3 font-bold text-slate-900" colSpan={4}>Total rendered hours</td>
                   <td className="px-4 py-3 font-bold text-slate-900">{formatHours(completedHours)}</td>
-                  <td className="px-4 py-3" colSpan={3} />
+                  <td className="px-4 py-3" colSpan={4} />
                 </tr>
               </tfoot>
             </table>
           </div>
         ) : (
           <div className="p-10 text-center text-slate-600">
-            No DTR entries yet. Add your first time-in and time-out record to start tracking hours.
+            {entries.length ? 'No attendance records match the current search and filter.' : 'No DTR entries yet. Add your first time-in and time-out record to start tracking hours.'}
           </div>
         )}
       </section>
