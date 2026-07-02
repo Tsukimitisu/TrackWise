@@ -44,7 +44,9 @@ class DocumentationFileController
         $validated = $request->validate([
             'user_program_id' => ['required', 'integer', 'exists:user_programs,id'],
             'file' => ['required', 'file', 'image', 'max:5120'], // 5MB max
+            'title' => ['required', 'string', 'max:150'],
             'caption' => ['nullable', 'string', 'max:500'],
+            'description' => ['required', 'string', 'max:2000'],
             'taken_at' => ['nullable', 'date'],
             'latitude' => ['nullable', 'numeric'],
             'longitude' => ['nullable', 'numeric'],
@@ -61,7 +63,9 @@ class DocumentationFileController
             'user_program_id' => $validated['user_program_id'],
             'file_url' => Storage::url($path),
             'file_type' => $file->getMimeType(),
+            'title' => $validated['title'],
             'caption' => $validated['caption'] ?? null,
+            'description' => $validated['description'],
             'taken_at' => $validated['taken_at'] ?? now(),
             'latitude' => $validated['latitude'] ?? null,
             'longitude' => $validated['longitude'] ?? null,
@@ -81,7 +85,9 @@ class DocumentationFileController
     public function update(Request $request, DocumentationFile $documentationFile): JsonResponse
     {
         $validated = $request->validate([
+            'title' => ['sometimes', 'required', 'string', 'max:150'],
             'caption' => ['nullable', 'string', 'max:500'],
+            'description' => ['sometimes', 'required', 'string', 'max:2000'],
             'latitude' => ['nullable', 'numeric'],
             'longitude' => ['nullable', 'numeric'],
         ]);
