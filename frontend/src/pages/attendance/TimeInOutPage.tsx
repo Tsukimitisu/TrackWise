@@ -17,6 +17,7 @@ const blankEntry = (): Omit<DtrEntry, 'id'> => ({
   timeIn: '08:00',
   timeOut: '17:00',
   breakMinutes: 60,
+  attendanceStatus: 'Present',
   activities: '',
   remarks: '',
   signatureName: '',
@@ -85,6 +86,14 @@ export default function TimeInOutPage() {
             </Field>
             <Field label="Break minutes">
               <input className={fieldClass} type="number" min="0" value={entry.breakMinutes} onChange={(event) => updateField('breakMinutes', event.target.value)} />
+            </Field>
+            <Field label="Attendance status">
+              <select className={fieldClass} value={entry.attendanceStatus} onChange={(event) => updateField('attendanceStatus', event.target.value)}>
+                <option>Present</option>
+                <option>Late</option>
+                <option>Half day</option>
+                <option>Absent</option>
+              </select>
             </Field>
             <div className="rounded-lg bg-blue-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Rendered hours</p>
