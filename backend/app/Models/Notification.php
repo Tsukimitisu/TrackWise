@@ -15,11 +15,15 @@ class Notification extends Model
         'title',
         'message',
         'type',
+        'data',
         'is_read',
+        'read_at',
     ];
 
     protected $casts = [
         'is_read' => 'boolean',
+        'data' => 'array',
+        'read_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

@@ -18,6 +18,7 @@ class DailyReport extends Model
         'tools_used',
         'problems_encountered',
         'learnings',
+        'reflection',
         'status',
         'submitted_at',
         'reviewed_by',

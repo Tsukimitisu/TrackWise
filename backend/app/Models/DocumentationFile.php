@@ -31,6 +31,15 @@ class DocumentationFile extends Model
         'longitude' => 'decimal:8',
     ];
 
+    protected $hidden = ['file_url'];
+
+    protected $appends = ['download_url'];
+
+    public function getDownloadUrlAttribute(): string
+    {
+        return route('documentation-files.download', ['documentationFile' => $this->getKey()], false);
+    }
+
     public function userProgram(): BelongsTo
     {
         return $this->belongsTo(UserProgram::class);
