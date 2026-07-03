@@ -15,8 +15,8 @@ class ClockInRequest extends FormRequest
     {
         return [
             'user_program_id' => ['required', 'integer', 'exists:user_programs,id'],
-            'date' => ['required', 'date'],
-            'time_in' => ['required', 'date_format:H:i'],
+            'date' => ['nullable', 'date'],
+            'time_in' => ['nullable', 'date_format:H:i'],
             'time_in_photo' => ['nullable', 'string'],
             'latitude' => ['nullable', 'numeric'],
             'longitude' => ['nullable', 'numeric'],

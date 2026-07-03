@@ -15,8 +15,8 @@ class ClockOutRequest extends FormRequest
     {
         return [
             'user_program_id' => ['required', 'integer', 'exists:user_programs,id'],
-            'date' => ['required', 'date'],
-            'time_out' => ['required', 'date_format:H:i'],
+            'date' => ['nullable', 'date'],
+            'time_out' => ['nullable', 'date_format:H:i'],
             'break_minutes' => ['nullable', 'integer', 'min:0'],
             'time_out_photo' => ['nullable', 'string'],
             'remarks' => ['nullable', 'string'],
