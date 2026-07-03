@@ -23,10 +23,6 @@ class WeeklyReportRequest extends FormRequest
             'skills_learned' => ['nullable', 'string', 'max:1000'],
             'challenges' => ['nullable', 'string', 'max:1000'],
             'reflection' => ['nullable', 'string', 'max:1000'],
-            'status' => ['required', 'string', Rule::in(['draft', 'submitted', 'approved', 'rejected', 'needs_revision'])],
-            'submitted_at' => ['nullable', 'date', 'date_format:Y-m-d H:i:s'],
-            'reviewed_by' => ['nullable', 'integer', 'exists:users,id'],
-            'review_comment' => ['nullable', 'string', 'max:1000'],
         ];
     }
 

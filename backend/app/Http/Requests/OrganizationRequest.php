@@ -15,7 +15,12 @@ class OrganizationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('organizations', 'name')->ignore($this->route('organization')?->id),
+            ],
             'type' => ['required', 'string', Rule::in(['school', 'company', 'training center', 'agency', 'freelance team', 'government office'])],
             'address' => ['nullable', 'string'],
             'contact_email' => ['nullable', 'email', 'max:255'],

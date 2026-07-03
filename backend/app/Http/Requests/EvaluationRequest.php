@@ -15,12 +15,11 @@ class EvaluationRequest extends FormRequest
     {
         return [
             'user_program_id' => ['required', 'integer', 'exists:user_programs,id'],
-            'supervisor_id' => ['required', 'integer', 'exists:users,id'],
-            'attendance_score' => ['required', 'integer', 'min:0', 'max:100'],
-            'performance_score' => ['required', 'integer', 'min:0', 'max:100'],
-            'communication_score' => ['required', 'integer', 'min:0', 'max:100'],
-            'technical_score' => ['required', 'integer', 'min:0', 'max:100'],
-            'professionalism_score' => ['required', 'integer', 'min:0', 'max:100'],
+            'attendance_score' => ['required', 'integer', 'min:1', 'max:5'],
+            'performance_score' => ['required', 'integer', 'min:1', 'max:5'],
+            'communication_score' => ['required', 'integer', 'min:1', 'max:5'],
+            'technical_score' => ['required', 'integer', 'min:1', 'max:5'],
+            'professionalism_score' => ['required', 'integer', 'min:1', 'max:5'],
             'comments' => ['nullable', 'string'],
         ];
     }

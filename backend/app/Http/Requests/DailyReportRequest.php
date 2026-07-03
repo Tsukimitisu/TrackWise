@@ -21,11 +21,8 @@ class DailyReportRequest extends FormRequest
             'tools_used' => ['nullable', 'string', 'max:500'],
             'problems_encountered' => ['nullable', 'string', 'max:500'],
             'learnings' => ['nullable', 'string', 'max:500'],
+            'reflection' => ['nullable', 'string', 'max:2000'],
             'hours_worked' => ['nullable', 'numeric', 'min:0', 'max:24'],
-            'status' => ['required', 'string', Rule::in(['draft', 'submitted', 'approved', 'rejected', 'needs_revision'])],
-            'submitted_at' => ['nullable', 'date', 'date_format:Y-m-d H:i:s'],
-            'reviewed_by' => ['nullable', 'integer', 'exists:users,id'],
-            'review_comment' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
