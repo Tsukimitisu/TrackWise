@@ -13,7 +13,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -46,9 +48,18 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): JsonResponse
     {
+        $throttleKey = Str::lower((string) $request->input('email')).'|'.$request->ip();
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            return response()->json([
+                'message' => 'Too many failed sign-in attempts. Try again in '.RateLimiter::availableIn($throttleKey).' seconds.',
+            ], 429);
+        }
+
         $user = User::query()->where('email', $request->input('email'))->first();
 
         if (! $user || ! Hash::check($request->input('password'), $user->password)) {
+            RateLimiter::hit($throttleKey, 60);
             return response()->json(['message' => 'Invalid credentials.'], 422);
         }
 
@@ -60,6 +71,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Please verify your email before signing in.'], 403);
         }
 
+        RateLimiter::clear($throttleKey);
         $token = $user->createToken('trackwise')->plainTextToken;
 
         return response()->json([
@@ -88,11 +100,32 @@ class AuthController extends Controller
             'last_name' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'phone' => ['nullable', 'string', 'max:20'],
+            'student_number' => ['nullable', 'string', 'max:100'],
+            'course' => ['nullable', 'string', 'max:255'],
+            'year_level' => ['nullable', 'string', 'max:100'],
         ]);
 
-        $user->update(array_filter($data));
+        $emailChanged = isset($data['email']) && $data['email'] !== $user->email;
+        $user->fill(array_filter($data, fn ($value) => $value !== null));
 
-        return response()->json(['message' => 'Profile updated.', 'user' => $user->load(['role', 'organization', 'userPrograms.program'])]);
+        if ($emailChanged) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        if ($emailChanged) {
+            $user->tokens()->delete();
+            $user->sendEmailVerificationNotification();
+        }
+
+        return response()->json([
+            'message' => $emailChanged
+                ? 'Profile updated. Verify the new email address before signing in again.'
+                : 'Profile updated.',
+            'requires_email_verification' => $emailChanged,
+            'user' => $user->load(['role', 'organization', 'userPrograms.program']),
+        ]);
     }
 
     public function changePassword(): JsonResponse
