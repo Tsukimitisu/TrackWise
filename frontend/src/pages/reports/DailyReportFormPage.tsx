@@ -15,6 +15,7 @@ interface ReportForm {
   tools_used: string;
   problems_encountered: string;
   learnings: string;
+  reflection: string;
   status: string;
 }
 
@@ -27,6 +28,7 @@ const emptyForm = (): ReportForm => ({
   tools_used: '',
   problems_encountered: '',
   learnings: '',
+  reflection: '',
   status: 'draft',
 });
 
@@ -68,6 +70,7 @@ export default function DailyReportFormPage() {
           tools_used: report.tools_used || '',
           problems_encountered: report.problems_encountered || '',
           learnings: report.learnings || '',
+          reflection: report.reflection || '',
           status: report.status,
         });
       } else if (id && reportResult.status === 'rejected') {
@@ -109,7 +112,7 @@ export default function DailyReportFormPage() {
       tools_used: form.tools_used.trim(),
       problems_encountered: form.problems_encountered.trim(),
       learnings: form.learnings.trim(),
-      status: form.status,
+      reflection: form.reflection.trim(),
     };
 
     try {
@@ -195,6 +198,9 @@ export default function DailyReportFormPage() {
                 <textarea className={fieldClass} rows={4} value={form.learnings} onChange={(event) => setForm((current) => ({ ...current, learnings: event.target.value }))} placeholder="What did you learn or improve today?" />
               </Field>
             </div>
+            <Field label="Reflection or remarks">
+              <textarea className={fieldClass} rows={4} value={form.reflection} onChange={(event) => setForm((current) => ({ ...current, reflection: event.target.value }))} placeholder="Reflect on your contribution, progress, and next steps." />
+            </Field>
           </div>
         </section>
 

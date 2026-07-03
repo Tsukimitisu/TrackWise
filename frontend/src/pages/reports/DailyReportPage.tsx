@@ -14,7 +14,7 @@ interface DailyReport {
   tools_used?: string;
   status: 'draft' | 'submitted' | 'approved' | 'rejected' | 'needs_revision';
   review_comment?: string;
-  userProgram?: {
+  user_program?: {
     user: { first_name: string; last_name: string };
     program: { name: string };
   };
@@ -157,7 +157,7 @@ export default function DailyReportPage() {
                     <td className="whitespace-nowrap px-6 py-4 font-bold text-slate-900">{formatReportDate(report.report_date)}</td>
                     {!isStudent ? (
                       <td className="whitespace-nowrap px-6 py-4 text-slate-700">
-                        {report.userProgram?.user ? `${report.userProgram.user.first_name} ${report.userProgram.user.last_name}` : 'Student record'}
+                        {report.user_program?.user ? `${report.user_program.user.first_name} ${report.user_program.user.last_name}` : 'Student record'}
                       </td>
                     ) : null}
                     <td className="max-w-xl px-6 py-4">
