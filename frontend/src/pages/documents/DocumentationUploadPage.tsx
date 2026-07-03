@@ -1,255 +1,121 @@
-import { useEffect, useRef, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import client from '../../api/client';
 import PageHeader from '../../components/ui/PageHeader';
-import { createId, loadOjtData, saveOjtData } from '../../features/studentOjt/ojtStorage';
+import { type Assignment, type AttendanceLog, unwrapList } from '../../features/studentOjt/apiTypes';
 
-interface UserProgram {
-  id: number;
-  program?: { name: string };
-}
-
-interface DailyReport {
-  id: number;
-  user_program_id: number;
-  report_date: string;
-  tasks_done: string;
-}
-
-const fieldClass = 'w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-100';
+interface DailyReportOption { id: number; user_program_id: number; report_date: string; tasks_done: string; }
 
 export default function DocumentationUploadPage() {
-  const [userPrograms, setUserPrograms] = useState<UserProgram[]>([]);
-  const [dailyReports, setDailyReports] = useState<DailyReport[]>([]);
-  const [formData, setFormData] = useState({
-    user_program_id: 0,
-    daily_report_id: 0,
-    title: '',
-    caption: '',
-    description: '',
-  });
+  const navigate = useNavigate();
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [reports, setReports] = useState<DailyReportOption[]>([]);
+  const [attendance, setAttendance] = useState<AttendanceLog[]>([]);
+  const [assignmentId, setAssignmentId] = useState(0);
+  const [attachment, setAttachment] = useState('');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [useCamera, setUseCamera] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  const cameraRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
-
   useEffect(() => {
-    const load = async () => {
-      const [assignmentResult, reportResult] = await Promise.allSettled([
-        client.get('/assignments'),
-        client.get('/daily-reports'),
-      ]);
-      if (assignmentResult.status === 'fulfilled') {
-        const payload = assignmentResult.value.data.data || assignmentResult.value.data;
-        const list = Array.isArray(payload) ? payload : [];
-        setUserPrograms(list);
-        if (list.length) setFormData((current) => ({ ...current, user_program_id: list[0].id }));
-      }
-      if (reportResult.status === 'fulfilled') {
-        const payload = reportResult.value.data.data || reportResult.value.data;
-        setDailyReports(Array.isArray(payload) ? payload : []);
-      }
-    };
-    void load();
-    return () => stopCamera();
+    Promise.all([client.get('/assignments'), client.get('/daily-reports'), client.get('/attendance-logs')])
+      .then(([assignmentResponse, reportResponse, attendanceResponse]) => {
+        const nextAssignments = unwrapList<Assignment>(assignmentResponse.data);
+        setAssignments(nextAssignments);
+        setAssignmentId(nextAssignments[0]?.id || 0);
+        setReports(unwrapList<DailyReportOption>(reportResponse.data));
+        setAttendance(unwrapList<AttendanceLog>(attendanceResponse.data));
+      })
+      .catch(() => setError('Assignment records could not be loaded.'));
   }, []);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = event.target.files?.[0];
-    if (!selected) return;
-    if (selected.size > 5 * 1024 * 1024) {
-      setError('The selected image must be 5 MB or smaller.');
-      return;
-    }
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+
+  const chooseFile = (nextFile?: File) => {
+    if (preview) URL.revokeObjectURL(preview);
+    setFile(nextFile || null);
+    setPreview(nextFile ? URL.createObjectURL(nextFile) : '');
     setError('');
-    setFile(selected);
-    stopCamera();
-    const reader = new FileReader();
-    reader.onload = (loadEvent) => setPreview((loadEvent.target?.result as string) || '');
-    reader.readAsDataURL(selected);
   };
 
-  const startCamera = async () => {
-    setError('');
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-      setUseCamera(true);
-      window.setTimeout(() => {
-        if (cameraRef.current) cameraRef.current.srcObject = stream;
-      }, 0);
-    } catch {
-      setError('Camera access was unavailable. Check browser permission or upload an image instead.');
-    }
-  };
+  const options = [
+    ...reports.filter((report) => report.user_program_id === assignmentId).map((report) => ({
+      value: `daily:${report.id}`, label: `Daily log · ${report.report_date.slice(0, 10)}`,
+    })),
+    ...attendance.filter((log) => log.user_program_id === assignmentId).map((log) => ({
+      value: `attendance:${log.id}`, label: `Attendance · ${log.date.slice(0, 10)}`,
+    })),
+  ];
 
-  const stopCamera = () => {
-    const stream = cameraRef.current?.srcObject as MediaStream | null;
-    stream?.getTracks().forEach((track) => track.stop());
-    if (cameraRef.current) cameraRef.current.srcObject = null;
-    setUseCamera(false);
-  };
-
-  const capturePhoto = () => {
-    const video = cameraRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas) return;
-    canvas.width = video.videoWidth || 1280;
-    canvas.height = video.videoHeight || 720;
-    const context = canvas.getContext('2d');
-    if (!context) return;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const photo = new File([blob], `ojt-documentation-${Date.now()}.jpg`, { type: 'image/jpeg' });
-      setFile(photo);
-      setPreview(canvas.toDataURL('image/jpeg', 0.9));
-      stopCamera();
-    }, 'image/jpeg', 0.9);
-  };
-
-  const handleSubmit = async (event: React.FormEvent) => {
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!file) {
-      setError('Upload or capture an image before saving.');
+    if (!file || !assignmentId || !attachment) {
+      setError('Choose an image and attach it to a daily log or attendance record.');
       return;
     }
-    if (!formData.user_program_id) {
-      setError('Select an OJT assignment before saving.');
-      return;
-    }
-
+    const [type, id] = attachment.split(':');
+    const body = new FormData();
+    body.append('file', file);
+    body.append('user_program_id', String(assignmentId));
+    body.append('title', title.trim());
+    body.append('description', description.trim());
+    body.append(type === 'daily' ? 'daily_report_id' : 'attendance_log_id', id);
+    setBusy(true);
     try {
-      setUploading(true);
-      setError('');
-      const payload = new FormData();
-      payload.append('user_program_id', String(formData.user_program_id));
-      payload.append('file', file);
-      payload.append('title', formData.title.trim());
-      payload.append('description', formData.description.trim());
-      if (formData.caption.trim()) payload.append('caption', formData.caption.trim());
-      if (formData.daily_report_id) payload.append('daily_report_id', String(formData.daily_report_id));
-      await client.post('/documentation-files', payload, { headers: { 'Content-Type': 'multipart/form-data' } });
-      const localData = loadOjtData();
-      saveOjtData({
-        ...localData,
-        documentation: [{
-          id: createId('doc'),
-          title: formData.title.trim(),
-          date: new Date().toISOString().slice(0, 10),
-          description: formData.description.trim(),
-          evidenceType: 'photo',
-          fileName: file.name,
-        }, ...localData.documentation],
-      });
+      await client.post('/documentation-files', body);
       navigate('/app/documents');
-    } catch (uploadError: any) {
-      const message = uploadError.response?.data?.message;
-      setError(message || 'The image could not be uploaded. Check the required details and try again.');
+    } catch (requestError: any) {
+      const errors = requestError.response?.data?.errors;
+      setError(errors ? Object.values(errors).flat().join(' ') : requestError.response?.data?.message || 'Upload failed.');
     } finally {
-      setUploading(false);
+      setBusy(false);
     }
   };
-
-  const matchingReports = dailyReports.filter((report) => !formData.user_program_id || report.user_program_id === formData.user_program_id);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader
-        eyebrow="Work evidence"
-        title="Add Documentation"
-        description="Capture or upload a clear image, explain what it shows, and connect it to the correct daily log."
-      />
+    <div className="mx-auto max-w-4xl space-y-6">
+      <PageHeader title="Upload documentation" description="Capture or upload an image, add meaningful metadata, and connect it to the correct OJT record." />
+      <form onSubmit={submit} className="grid gap-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-2">
+        <div className="space-y-5">
+          <Field label="OJT assignment">
+            <select value={assignmentId} onChange={(event) => { setAssignmentId(Number(event.target.value)); setAttachment(''); }} className={fieldClass} required>
+              {assignments.map((assignment) => <option key={assignment.id} value={assignment.id}>{assignment.program?.name}</option>)}
+            </select>
+          </Field>
+          <Field label="Attach to">
+            <select value={attachment} onChange={(event) => setAttachment(event.target.value)} className={fieldClass} required>
+              <option value="">Choose a daily log or attendance record</option>
+              {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </Field>
+          <Field label="Image title">
+            <input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={150} className={fieldClass} required />
+          </Field>
+          <Field label="Description">
+            <textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={5} maxLength={2000} className={fieldClass} required />
+          </Field>
+        </div>
 
-      <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-950">1. Add a photo</h2>
-          <p className="mt-1 text-sm text-slate-500">JPG, PNG, or WebP up to 5 MB.</p>
-
-          <div className="mt-5 overflow-hidden rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50">
-            {useCamera ? (
-              <div className="p-3">
-                <video ref={cameraRef} autoPlay playsInline muted className="aspect-[4/3] w-full rounded-xl bg-slate-950 object-cover" />
-                <canvas ref={canvasRef} className="hidden" />
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  <button type="button" onClick={capturePhoto} className="rounded-xl bg-teal-500 px-4 py-3 text-sm font-bold text-slate-950 hover:bg-teal-400">Capture photo</button>
-                  <button type="button" onClick={stopCamera} className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50">Cancel</button>
-                </div>
-              </div>
-            ) : preview ? (
-              <div className="relative">
-                <img src={preview} alt="Documentation preview" className="aspect-[4/3] w-full object-contain" />
-                <button type="button" onClick={() => { setFile(null); setPreview(''); }} className="absolute right-3 top-3 rounded-lg bg-slate-950/80 px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-950">Remove</button>
-              </div>
-            ) : (
-              <div className="grid min-h-80 place-items-center p-8 text-center">
-                <div>
-                  <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-teal-100 text-2xl text-teal-800">▧</span>
-                  <p className="mt-4 font-bold text-slate-900">Add your work documentation</p>
-                  <p className="mt-1 text-sm text-slate-500">Use a well-lit photo that clearly shows the completed work.</p>
-                  <div className="mt-5 flex flex-wrap justify-center gap-3">
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="rounded-xl bg-[#10233f] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#18345b]">Upload image</button>
-                    <button type="button" onClick={startCamera} className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50">Open camera</button>
-                  </div>
-                </div>
-              </div>
-            )}
+        <div>
+          <label className="flex min-h-72 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center hover:border-blue-500">
+            {preview ? <img src={preview} alt="Upload preview" className="max-h-72 rounded-lg object-contain" /> : <><strong className="text-slate-900">Open camera or choose image</strong><span className="mt-2 text-sm text-slate-500">JPEG, PNG, GIF, or WebP up to 5 MB</span></>}
+            <input type="file" accept="image/*" capture="environment" className="sr-only" onChange={(event) => chooseFile(event.target.files?.[0])} />
+          </label>
+          {error ? <div role="alert" className="mt-4 rounded-lg bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">{error}</div> : null}
+          <div className="mt-5 flex justify-end gap-3">
+            <button type="button" onClick={() => navigate('/app/documents')} className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold">Cancel</button>
+            <button type="submit" disabled={busy} className="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:bg-slate-400">{busy ? 'Uploading…' : 'Upload privately'}</button>
           </div>
-          <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={handleFileSelect} className="hidden" />
-        </section>
-
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-950">2. Describe and attach</h2>
-          <p className="mt-1 text-sm text-slate-500">Required details make the evidence clear to reviewers.</p>
-
-          <div className="mt-5 space-y-5">
-            <Field label="OJT assignment" required>
-              <select className={fieldClass} value={formData.user_program_id} onChange={(event) => setFormData((current) => ({ ...current, user_program_id: Number(event.target.value), daily_report_id: 0 }))} required>
-                <option value={0}>Select assignment</option>
-                {userPrograms.map((assignment) => <option key={assignment.id} value={assignment.id}>{assignment.program?.name ?? `Assignment #${assignment.id}`}</option>)}
-              </select>
-            </Field>
-            <Field label="Attach to daily log">
-              <select className={fieldClass} value={formData.daily_report_id} onChange={(event) => setFormData((current) => ({ ...current, daily_report_id: Number(event.target.value) }))}>
-                <option value={0}>No daily log selected</option>
-                {matchingReports.map((report) => <option key={report.id} value={report.id}>{report.report_date} — {report.tasks_done.slice(0, 45)}</option>)}
-              </select>
-            </Field>
-            <Field label="Image title" required>
-              <input className={fieldClass} value={formData.title} onChange={(event) => setFormData((current) => ({ ...current, title: event.target.value }))} placeholder="e.g. Network cable installation" maxLength={150} required />
-            </Field>
-            <Field label="Short caption">
-              <input className={fieldClass} value={formData.caption} onChange={(event) => setFormData((current) => ({ ...current, caption: event.target.value }))} placeholder="Caption shown below the image" maxLength={500} />
-            </Field>
-            <Field label="Detailed description" required>
-              <textarea className={fieldClass} rows={5} value={formData.description} onChange={(event) => setFormData((current) => ({ ...current, description: event.target.value }))} placeholder="Describe the task, your role, and what this image proves." maxLength={2000} required />
-            </Field>
-          </div>
-
-          {error ? <div role="alert" className="mt-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div> : null}
-
-          <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-            <button type="button" onClick={() => navigate('/app/documents')} className="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50">Cancel</button>
-            <button type="submit" disabled={uploading} className="rounded-xl bg-teal-500 px-5 py-2.5 text-sm font-bold text-[#10233f] hover:bg-teal-400 disabled:cursor-not-allowed disabled:opacity-60">
-              {uploading ? 'Uploading…' : 'Save documentation'}
-            </button>
-          </div>
-        </section>
+        </div>
       </form>
     </div>
   );
 }
 
-function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="mb-2 block text-sm font-semibold text-slate-800">{label}{required ? <span className="ml-1 text-rose-600">*</span> : null}</span>
-      {children}
-    </label>
-  );
+const fieldClass = 'w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100';
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return <label className="block"><span className="mb-2 block text-sm font-semibold text-slate-800">{label}</span>{children}</label>;
 }

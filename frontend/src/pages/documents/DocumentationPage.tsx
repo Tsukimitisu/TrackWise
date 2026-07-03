@@ -1,192 +1,95 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Button from '../../components/ui/Button';
+import client from '../../api/client';
 import PageHeader from '../../components/ui/PageHeader';
-import {
-  createId,
-  loadOjtData,
-  saveOjtData,
-  type DocumentationItem,
-  type OjtData,
-} from '../../features/studentOjt/ojtStorage';
-
-const fieldClass = 'w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200';
-
-const requirements = [
-  'Daily Time Record entries',
-  'Narrative report',
-  'Documentation photos or evidence',
-  'Supervisor signature',
-  'School coordinator signature',
-  'Completion hours summary',
-];
-
-const blankItem = (): Omit<DocumentationItem, 'id'> => ({
-  title: '',
-  date: new Date().toISOString().slice(0, 10),
-  description: '',
-  evidenceType: 'photo',
-  fileName: '',
-});
+import { type DocumentationRecord, unwrapList } from '../../features/studentOjt/apiTypes';
 
 export default function DocumentationPage() {
-  const [data, setData] = useState<OjtData>(() => loadOjtData());
-  const [item, setItem] = useState<Omit<DocumentationItem, 'id'>>(blankItem);
+  const [records, setRecords] = useState<DocumentationRecord[]>([]);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    setData(loadOjtData());
-  }, []);
+  const load = () => client.get('/documentation-files')
+    .then((response) => setRecords(unwrapList<DocumentationRecord>(response.data)))
+    .catch(() => setError('Documentation could not be loaded.'))
+    .finally(() => setLoading(false));
 
-  const progress = useMemo(() => {
-    const completed = [
-      data.dtrEntries.length > 0,
-      data.narrativeReports.length > 0,
-      data.documentation.length > 0,
-      data.profile.supervisorName.length > 0,
-      false,
-      data.profile.requiredHours > 0,
-    ].filter(Boolean).length;
-    return { completed, total: requirements.length };
-  }, [data]);
+  useEffect(() => { void load(); }, []);
 
-  const updateField = (key: keyof Omit<DocumentationItem, 'id'>, value: string) => {
-    setItem((current) => ({ ...current, [key]: value }));
-  };
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return records.filter((record) => !query
+      || record.title.toLowerCase().includes(query)
+      || record.description.toLowerCase().includes(query));
+  }, [records, search]);
 
-  const addDocumentation = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const current = loadOjtData();
-    const nextItem: DocumentationItem = { ...item, id: createId('doc') };
-    const nextData = {
-      ...current,
-      documentation: [nextItem, ...current.documentation],
-    };
-    saveOjtData(nextData);
-    setData(nextData);
-    setItem(blankItem());
-  };
-
-  const deleteDocumentation = (id: string) => {
-    if (!window.confirm('Delete this documentation item?')) return;
-    const nextData = {
-      ...data,
-      documentation: data.documentation.filter((document) => document.id !== id),
-    };
-    saveOjtData(nextData);
-    setData(nextData);
+  const remove = async (record: DocumentationRecord) => {
+    if (!window.confirm(`Delete “${record.title}”? This cannot be undone.`)) return;
+    try {
+      await client.delete(`/documentation-files/${record.id}`);
+      setRecords((current) => current.filter((item) => item.id !== record.id));
+    } catch {
+      setError('The documentation item could not be deleted.');
+    }
   };
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8">
       <PageHeader
         title="OJT Documentation"
-        description="Upload clear proof of work, add professional captions, and keep every item attached to your OJT record."
-        actions={
-          <Link to="/app/documents/upload" className="inline-flex items-center gap-2 rounded-xl bg-[#10233f] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#18345b] hover:text-white">
-            <span className="text-lg leading-none">+</span> Upload or capture photo
-          </Link>
-        }
+        description="Private evidence attached to your authenticated attendance and reports."
+        actions={<Link to="/app/documents/upload" className="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800">Upload or capture photo</Link>}
       />
 
-      <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-900">Requirement Checklist</h2>
-            <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">{progress.completed}/{progress.total}</span>
-          </div>
-          <div className="space-y-3">
-            {requirements.map((requirement, index) => {
-              const done = index === 0
-                ? data.dtrEntries.length > 0
-                : index === 1
-                  ? data.narrativeReports.length > 0
-                  : index === 2
-                    ? data.documentation.length > 0
-                    : index === 3
-                      ? data.profile.supervisorName.length > 0
-                      : index === 5
-                        ? data.profile.requiredHours > 0
-                        : false;
-              return (
-                <div key={requirement} className="flex items-center gap-3 rounded-lg border border-slate-200 p-3">
-                  <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${done ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
-                    {done ? 'Y' : ''}
-                  </span>
-                  <span className="text-sm font-medium text-slate-800">{requirement}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <form onSubmit={addDocumentation} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-slate-900">Add Documentation Item</h2>
-          <div className="mt-5 grid gap-5 sm:grid-cols-2">
-            <Field label="Title">
-              <input className={fieldClass} value={item.title} onChange={(event) => updateField('title', event.target.value)} placeholder="Example: Week 1 office task photo" required />
-            </Field>
-            <Field label="Date">
-              <input className={fieldClass} type="date" value={item.date} onChange={(event) => updateField('date', event.target.value)} required />
-            </Field>
-            <Field label="Evidence type">
-              <select className={fieldClass} value={item.evidenceType} onChange={(event) => updateField('evidenceType', event.target.value)}>
-                <option value="photo">Photo</option>
-                <option value="certificate">Certificate</option>
-                <option value="memo">Memo</option>
-                <option value="other">Other</option>
-              </select>
-            </Field>
-            <Field label="File name or link">
-              <input className={fieldClass} value={item.fileName} onChange={(event) => updateField('fileName', event.target.value)} placeholder="filename.jpg or shared link" />
-            </Field>
-          </div>
-          <div className="mt-5">
-            <Field label="Description">
-              <textarea className={fieldClass} rows={5} value={item.description} onChange={(event) => updateField('description', event.target.value)} placeholder="Describe what this evidence proves." required />
-            </Field>
-          </div>
-          <div className="mt-6 flex justify-end">
-            <Button type="submit" variant="primary" size="md">
-              Add documentation
-            </Button>
-          </div>
-        </form>
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <label className="block max-w-xl">
+          <span className="sr-only">Search documentation</span>
+          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title or description" className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm" />
+        </label>
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-slate-900">Documentation Log</h2>
-        {data.documentation.length ? (
-          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {data.documentation.map((document) => (
-              <article key={document.id} className="rounded-lg border border-slate-200 p-4">
+      {error ? <div className="rounded-lg bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">{error}</div> : null}
+      {loading ? <div className="rounded-xl border border-slate-200 bg-white p-10 text-center text-slate-500">Loading documentation…</div> : null}
+
+      {!loading && filtered.length ? (
+        <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((record) => (
+            <article key={record.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <SecureImage record={record} />
+              <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">{document.evidenceType}</p>
-                    <h3 className="mt-1 font-bold text-slate-900">{document.title}</h3>
-                    <p className="mt-1 text-sm text-slate-500">{document.date}</p>
-                  </div>
-                  <button type="button" onClick={() => deleteDocumentation(document.id)} className="text-sm font-semibold text-rose-700 hover:text-rose-800">Delete</button>
+                  <div><h2 className="font-bold text-slate-900">{record.title}</h2><p className="mt-1 text-xs text-slate-500">{new Date(record.taken_at).toLocaleString()}</p></div>
+                  <button type="button" onClick={() => remove(record)} className="text-sm font-semibold text-rose-700 hover:text-rose-900">Delete</button>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-slate-700">{document.description}</p>
-                {document.fileName ? <p className="mt-3 rounded bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600">{document.fileName}</p> : null}
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-5 rounded-lg border border-dashed border-slate-300 p-8 text-center text-slate-600">
-            No documentation items yet.
-          </div>
-        )}
-      </section>
+                <p className="mt-3 text-sm leading-6 text-slate-700">{record.description}</p>
+              </div>
+            </article>
+          ))}
+        </section>
+      ) : null}
+
+      {!loading && !filtered.length ? (
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-600">
+          {records.length ? 'No documentation matches your search.' : 'No documentation uploaded yet.'}
+        </div>
+      ) : null}
     </div>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="mb-2 block text-sm font-semibold text-slate-800">{label}</span>
-      {children}
-    </label>
-  );
+function SecureImage({ record }: { record: DocumentationRecord }) {
+  const [source, setSource] = useState('');
+  useEffect(() => {
+    let objectUrl = '';
+    client.get(record.download_url, { responseType: 'blob' }).then((response) => {
+      objectUrl = URL.createObjectURL(response.data);
+      setSource(objectUrl);
+    }).catch(() => setSource(''));
+    return () => { if (objectUrl) URL.revokeObjectURL(objectUrl); };
+  }, [record.download_url]);
+
+  return source
+    ? <img src={source} alt={record.title} className="h-52 w-full object-cover" />
+    : <div className="flex h-52 items-center justify-center bg-slate-100 text-sm text-slate-500">Private image preview</div>;
 }
