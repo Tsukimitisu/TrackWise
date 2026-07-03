@@ -18,12 +18,17 @@ class UserProgram extends Model
         'coordinator_id',
         'required_hours',
         'completed_hours',
+        'department',
+        'start_date',
+        'end_date',
         'status',
     ];
 
     protected $casts = [
         'required_hours' => 'decimal:2',
         'completed_hours' => 'decimal:2',
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     public function user(): BelongsTo

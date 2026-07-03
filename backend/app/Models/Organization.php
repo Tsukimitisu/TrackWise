@@ -18,6 +18,7 @@ class Organization extends Model
         'contact_phone',
         'logo',
         'status',
+        'owner_organization_id',
     ];
 
     public function users(): HasMany

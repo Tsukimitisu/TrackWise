@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Notifications\VerifyStudentAccount;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -20,6 +19,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'role_id',
         'first_name',
         'last_name',
+        'student_number',
+        'course',
+        'year_level',
         'email',
         'password',
         'phone',
@@ -46,11 +48,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return trim("{$this->first_name} {$this->last_name}");
     }
 
-    public function sendEmailVerificationNotification(): void
-    {
-        $this->notify(new VerifyStudentAccount);
-    }
-
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
@@ -64,5 +61,25 @@ class User extends Authenticatable implements MustVerifyEmail
     public function userPrograms(): HasMany
     {
         return $this->hasMany(UserProgram::class);
+    }
+
+    public function roleName(): string
+    {
+        return (string) $this->role?->name;
+    }
+
+    public function hasRole(string ...$roles): bool
+    {
+        return in_array($this->roleName(), $roles, true);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('Super Admin');
+    }
+
+    public function isOrganizationAdmin(): bool
+    {
+        return $this->hasRole('Organization Admin');
     }
 }
