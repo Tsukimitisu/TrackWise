@@ -1,141 +1,117 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import Button from '../../components/ui/Button';
+import client from '../../api/client';
+import { useAuth } from '../../auth/AuthContext';
 import PageHeader from '../../components/ui/PageHeader';
-import { defaultProfile, loadOjtData, saveOjtData, type StudentOjtProfile } from '../../features/studentOjt/ojtStorage';
+import { type Assignment, displayName, unwrapList } from '../../features/studentOjt/apiTypes';
 
-const fieldClass = 'w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100';
+interface EditableProfile {
+  first_name: string;
+  last_name: string;
+  student_number: string;
+  course: string;
+  year_level: string;
+  phone: string;
+  email: string;
+}
 
 export default function OjtSetupPage() {
-  const [profile, setProfile] = useState<StudentOjtProfile>(defaultProfile);
-  const [saved, setSaved] = useState(false);
+  const { user, refreshSession } = useAuth();
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [profile, setProfile] = useState<EditableProfile>({
+    first_name: '', last_name: '', student_number: '', course: '', year_level: '', phone: '', email: '',
+  });
+  const [message, setMessage] = useState<{ error?: boolean; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  useEffect(() => setProfile(loadOjtData().profile), []);
+  useEffect(() => {
+    const current = user as any;
+    setProfile({
+      first_name: current?.first_name || '',
+      last_name: current?.last_name || '',
+      student_number: current?.student_number || '',
+      course: current?.course || '',
+      year_level: current?.year_level || '',
+      phone: current?.phone || '',
+      email: current?.email || '',
+    });
+    client.get('/assignments').then((response) => setAssignments(unwrapList<Assignment>(response.data))).catch(() => {
+      setMessage({ error: true, text: 'OJT assignment details could not be loaded.' });
+    });
+  }, [user]);
 
+  const assignment = assignments[0];
   const completion = useMemo(() => {
-    const required: Array<keyof StudentOjtProfile> = [
-      'studentName', 'studentNumber', 'course', 'yearLevel', 'school', 'ojtSite',
-      'department', 'supervisorName', 'requiredHours', 'startDate', 'endDate', 'contactNumber', 'email',
-    ];
-    const complete = required.filter((key) => Boolean(profile[key])).length;
-    return Math.round((complete / required.length) * 100);
-  }, [profile]);
+    const personal = Object.values(profile).filter(Boolean).length;
+    const assigned = assignment ? 6 : 0;
+    return Math.round((personal + assigned) / 13 * 100);
+  }, [assignment, profile]);
 
-  const updateField = (key: keyof StudentOjtProfile, value: string) => {
-    setSaved(false);
-    setProfile((current) => ({
-      ...current,
-      [key]: key === 'requiredHours' ? Number(value || 0) : value,
-    }));
-  };
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const save = async (event: FormEvent) => {
     event.preventDefault();
-    const current = loadOjtData();
-    saveOjtData({ ...current, profile });
-    setSaved(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setBusy(true);
+    setMessage(null);
+    try {
+      const response = await client.put('/auth/profile', profile);
+      if (response.data.requires_email_verification) {
+        localStorage.removeItem('trackwise_token');
+        window.location.assign('/login');
+        return;
+      }
+      await refreshSession();
+      setMessage({ text: 'Your profile was saved.' });
+    } catch (requestError: any) {
+      setMessage({ error: true, text: requestError.response?.data?.message || 'Profile could not be saved.' });
+    } finally {
+      setBusy(false);
+    }
   };
+
+  const update = (key: keyof EditableProfile, value: string) => setProfile((current) => ({ ...current, [key]: value }));
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader
-        eyebrow="Student record"
-        title="My OJT Profile"
-        description="Keep the information used in your attendance sheets, narrative reports, and school monitoring records accurate."
-      />
+      <PageHeader eyebrow="Student record" title="My OJT Profile" description="Personal fields are editable. Assignment, company, reviewer, dates, and required hours are controlled by authorized staff." />
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-bold text-slate-900">Profile completeness</p>
-            <p className="mt-1 text-xs text-slate-500">Complete all required details before generating your final report.</p>
-          </div>
-          <span className="text-lg font-bold text-teal-700">{completion}%</span>
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex justify-between"><div><p className="font-bold text-slate-900">Profile completeness</p><p className="text-sm text-slate-500">Complete your personal details and contact an administrator if assignment data is missing.</p></div><strong className="text-teal-700">{completion}%</strong></div>
+        <div className="mt-4 h-2 rounded-full bg-slate-100"><div className="h-full rounded-full bg-teal-600" style={{ width: `${completion}%` }} /></div>
+      </section>
+
+      {message ? <div role="status" className={`rounded-lg px-4 py-3 text-sm font-semibold ${message.error ? 'bg-rose-50 text-rose-800' : 'bg-emerald-50 text-emerald-800'}`}>{message.text}</div> : null}
+
+      <form onSubmit={save} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-slate-900">Student information</h2>
+        <div className="mt-5 grid gap-5 md:grid-cols-2">
+          <Field label="First name"><input className={fieldClass} value={profile.first_name} onChange={(e) => update('first_name', e.target.value)} required /></Field>
+          <Field label="Last name"><input className={fieldClass} value={profile.last_name} onChange={(e) => update('last_name', e.target.value)} required /></Field>
+          <Field label="Student number"><input className={fieldClass} value={profile.student_number} onChange={(e) => update('student_number', e.target.value)} /></Field>
+          <Field label="Course"><input className={fieldClass} value={profile.course} onChange={(e) => update('course', e.target.value)} /></Field>
+          <Field label="Year level"><input className={fieldClass} value={profile.year_level} onChange={(e) => update('year_level', e.target.value)} /></Field>
+          <Field label="Contact number"><input type="tel" className={fieldClass} value={profile.phone} onChange={(e) => update('phone', e.target.value)} /></Field>
+          <Field label="Email address"><input type="email" className={fieldClass} value={profile.email} onChange={(e) => update('email', e.target.value)} required /></Field>
         </div>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
-          <div className="h-full rounded-full bg-teal-500 transition-all" style={{ width: `${completion}%` }} />
-        </div>
-      </div>
-
-      {saved ? (
-        <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
-          Profile saved successfully. Your reports will use these updated details.
-        </div>
-      ) : null}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <FormSection title="Student information" description="Your official school and contact details.">
-          <Field label="Full name" required>
-            <input className={fieldClass} value={profile.studentName} onChange={(event) => updateField('studentName', event.target.value)} required />
-          </Field>
-          <Field label="Student number" required>
-            <input className={fieldClass} value={profile.studentNumber} onChange={(event) => updateField('studentNumber', event.target.value)} required />
-          </Field>
-          <Field label="Course" required>
-            <input className={fieldClass} value={profile.course} onChange={(event) => updateField('course', event.target.value)} placeholder="e.g. BS Information Technology" required />
-          </Field>
-          <Field label="Year level" required>
-            <input className={fieldClass} value={profile.yearLevel} onChange={(event) => updateField('yearLevel', event.target.value)} placeholder="e.g. 4th Year" required />
-          </Field>
-          <Field label="School name" required>
-            <input className={fieldClass} value={profile.school} onChange={(event) => updateField('school', event.target.value)} required />
-          </Field>
-          <Field label="Contact number" required>
-            <input className={fieldClass} type="tel" value={profile.contactNumber} onChange={(event) => updateField('contactNumber', event.target.value)} required />
-          </Field>
-          <Field label="Email address" required wide>
-            <input className={fieldClass} type="email" value={profile.email} onChange={(event) => updateField('email', event.target.value)} required />
-          </Field>
-        </FormSection>
-
-        <FormSection title="OJT assignment" description="Company placement, supervisor, and hour requirement.">
-          <Field label="Company name" required>
-            <input className={fieldClass} value={profile.ojtSite} onChange={(event) => updateField('ojtSite', event.target.value)} required />
-          </Field>
-          <Field label="Department / assigned area" required>
-            <input className={fieldClass} value={profile.department} onChange={(event) => updateField('department', event.target.value)} required />
-          </Field>
-          <Field label="Supervisor name" required>
-            <input className={fieldClass} value={profile.supervisorName} onChange={(event) => updateField('supervisorName', event.target.value)} required />
-          </Field>
-          <Field label="Required OJT hours" required>
-            <input className={fieldClass} type="number" min="1" value={profile.requiredHours} onChange={(event) => updateField('requiredHours', event.target.value)} required />
-          </Field>
-          <Field label="OJT start date" required>
-            <input className={fieldClass} type="date" value={profile.startDate} onChange={(event) => updateField('startDate', event.target.value)} required />
-          </Field>
-          <Field label="OJT end date" required>
-            <input className={fieldClass} type="date" min={profile.startDate || undefined} value={profile.endDate} onChange={(event) => updateField('endDate', event.target.value)} required />
-          </Field>
-        </FormSection>
-
-        <div className="sticky bottom-4 flex items-center justify-end rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-lg backdrop-blur">
-          <Button type="submit" variant="primary" size="md">Save OJT profile</Button>
-        </div>
+        <div className="mt-6 flex justify-end"><button disabled={busy} className="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:bg-slate-400">{busy ? 'Saving…' : 'Save personal details'}</button></div>
       </form>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-slate-900">Official OJT assignment</h2>
+        {assignment ? (
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <ReadOnly label="Company" value={assignment.program?.organization?.name || 'Not set'} />
+            <ReadOnly label="Program / requirement" value={assignment.program?.name || 'Not set'} />
+            <ReadOnly label="Department / assigned area" value={assignment.department || 'Not set'} />
+            <ReadOnly label="Company supervisor" value={displayName(assignment.supervisor)} />
+            <ReadOnly label="School coordinator" value={displayName(assignment.coordinator)} />
+            <ReadOnly label="Required hours" value={String(assignment.required_hours)} />
+            <ReadOnly label="OJT start date" value={assignment.start_date?.slice(0, 10) || 'Not set'} />
+            <ReadOnly label="OJT end date" value={assignment.end_date?.slice(0, 10) || 'Not set'} />
+          </div>
+        ) : <p className="mt-5 rounded-lg border border-dashed border-slate-300 p-6 text-center text-slate-500">No OJT assignment has been created for your account.</p>}
+      </section>
     </div>
   );
 }
 
-function FormSection({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-6 border-b border-slate-100 pb-4">
-        <h2 className="text-lg font-bold text-slate-950">{title}</h2>
-        <p className="mt-1 text-sm text-slate-500">{description}</p>
-      </div>
-      <div className="grid gap-5 md:grid-cols-2">{children}</div>
-    </section>
-  );
-}
-
-function Field({ label, required, wide, children }: { label: string; required?: boolean; wide?: boolean; children: React.ReactNode }) {
-  return (
-    <label className={`block ${wide ? 'md:col-span-2' : ''}`}>
-      <span className="mb-2 block text-sm font-semibold text-slate-800">
-        {label}{required ? <span className="ml-1 text-rose-600">*</span> : null}
-      </span>
-      {children}
-    </label>
-  );
-}
+const fieldClass = 'w-full rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100';
+function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label><span className="mb-2 block text-sm font-semibold text-slate-800">{label}</span>{children}</label>; }
+function ReadOnly({ label, value }: { label: string; value: string }) { return <div className="rounded-lg bg-slate-50 p-4"><p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p><p className="mt-1 font-semibold text-slate-900">{value}</p></div>; }
