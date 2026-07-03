@@ -7,7 +7,6 @@ use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AdminStatisticsController;
 use App\Http\Controllers\Api\ExportController;
 use App\Http\Controllers\Api\DailyReportController;
-use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\DocumentationFileController;
 use App\Http\Controllers\Api\EvaluationController;
 use App\Http\Controllers\Api\NotificationController;
@@ -18,6 +17,17 @@ use App\Http\Controllers\Api\WeeklyReportController;
 use App\Http\Controllers\Api\SystemSettingsController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
+
+Route::get('/health', function () {
+    try {
+        DB::select('select 1');
+        return response()->json(['status' => 'ok', 'database' => 'ready']);
+    } catch (\Throwable $exception) {
+        report($exception);
+        return response()->json(['status' => 'unavailable', 'database' => 'unavailable'], 503);
+    }
+});
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
@@ -33,9 +43,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
     Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
 
-    Route::get('/users', [UserController::class, 'index']);
-    Route::get('/users/{user}', [UserController::class, 'show']);
     Route::middleware('role:admin,coordinator')->group(function () {
+        Route::get('/users', [UserController::class, 'index']);
+        Route::get('/users/{user}', [UserController::class, 'show']);
+    });
+    Route::middleware('role:admin')->group(function () {
         Route::post('/users', [UserController::class, 'store']);
         Route::put('/users/{user}', [UserController::class, 'update']);
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
@@ -105,9 +117,8 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Documentation Files
     Route::apiResource('documentation-files', DocumentationFileController::class);
-    
-    // Documents
-    Route::apiResource('documents', DocumentController::class);
+    Route::get('/documentation-files/{documentationFile}/download', [DocumentationFileController::class, 'download'])
+        ->name('documentation-files.download');
     
     // Evaluations
     Route::apiResource('evaluations', EvaluationController::class);
@@ -116,13 +127,19 @@ Route::middleware('auth:sanctum')->group(function () {
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+    Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 
     // Approvals
-    Route::post('/approvals/{type}/{id}', [ApprovalController::class, 'review']);
+    Route::middleware('role:supervisor,coordinator,admin')->group(function () {
+        Route::post('/approvals/{type}/{id}', [ApprovalController::class, 'review']);
+    });
+    Route::get('/approvals/{type}/{id}/history', [ApprovalController::class, 'history']);
     
     // Settings - admin/coordinator only
-    Route::get('/settings', [SystemSettingsController::class, 'index']);
-    Route::middleware('role:admin,coordinator')->put('/settings', [SystemSettingsController::class, 'update']);
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/settings', [SystemSettingsController::class, 'index']);
+        Route::put('/settings', [SystemSettingsController::class, 'update']);
+    });
 
     // Analytics
     Route::get('/analytics/dashboard', [AnalyticsController::class, 'dashboard']);
