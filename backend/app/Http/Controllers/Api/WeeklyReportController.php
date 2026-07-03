@@ -6,15 +6,27 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\WeeklyReportRequest;
 use App\Models\DailyReport;
 use App\Models\WeeklyReport;
+use App\Models\UserProgram;
+use App\Services\AccessScope;
+use App\Services\ApprovalService;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class WeeklyReportController extends Controller
 {
+    public function __construct(
+        private ApprovalService $approvals,
+        private NotificationService $notifications
+    ) {
+    }
+
     public function index(Request $request): JsonResponse
     {
-        $query = WeeklyReport::with(['userProgram.user', 'userProgram.program']);
+        $this->authorize('viewAny', WeeklyReport::class);
+        $query = WeeklyReport::query()
+            ->whereIn('user_program_id', AccessScope::assignmentIds($request->user()))
+            ->with(['userProgram.user', 'userProgram.program']);
 
         if ($request->has('user_program_id')) {
             $query->where('user_program_id', $request->user_program_id);
@@ -30,15 +42,14 @@ class WeeklyReportController extends Controller
 
         if ($request->has('search')) {
             $search = $request->search;
-            $query->whereHas('userProgram.user', function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            })
-            ->orWhereHas('userProgram.program', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
-            })
-            ->orWhere('summary', 'like', "%{$search}%");
+            $query->where(function ($filtered) use ($search) {
+                $filtered->whereHas('userProgram.user', function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                })->orWhereHas('userProgram.program', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhere('summary', 'like', "%{$search}%");
+            });
         }
 
         return response()->json($query->latest('start_date')->paginate(15));
@@ -46,36 +57,48 @@ class WeeklyReportController extends Controller
 
     public function store(WeeklyReportRequest $request): JsonResponse
     {
-        $report = WeeklyReport::create($request->validated());
+        $this->authorize('create', WeeklyReport::class);
+        $payload = $request->validated();
+        $assignment = UserProgram::query()->findOrFail($payload['user_program_id']);
+        abort_unless((int) $assignment->user_id === (int) $request->user()->id, 403);
+        $payload['status'] = 'draft';
+        $report = WeeklyReport::create($payload);
 
         return response()->json($report->load('userProgram'), 201);
     }
 
     public function show(WeeklyReport $weeklyReport): JsonResponse
     {
+        $this->authorize('view', $weeklyReport);
         return response()->json($weeklyReport->load(['userProgram.user', 'userProgram.program', 'files']));
     }
 
     public function update(WeeklyReportRequest $request, WeeklyReport $weeklyReport): JsonResponse
     {
+        $this->authorize('update', $weeklyReport);
         // Only allow draft or needs_revision status to be updated
         if (! in_array($weeklyReport->status, ['draft', 'needs_revision'])) {
             return response()->json(['message' => 'Cannot edit report with status: ' . $weeklyReport->status], 422);
         }
 
-        $weeklyReport->update($request->validated());
+        $payload = $request->validated();
+        $payload['user_program_id'] = $weeklyReport->user_program_id;
+        $weeklyReport->update($payload);
 
         return response()->json($weeklyReport->refresh());
     }
 
     public function generateDraft(Request $request): JsonResponse
     {
+        $this->authorize('create', WeeklyReport::class);
         $validated = $request->validate([
             'user_program_id' => ['required', 'integer', 'exists:user_programs,id'],
             'week_number' => ['required', 'integer', 'min:1'],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
         ]);
+        $assignment = UserProgram::query()->findOrFail($validated['user_program_id']);
+        abort_unless((int) $assignment->user_id === (int) $request->user()->id, 403);
 
         // Check if weekly report already exists for this week
         $existing = WeeklyReport::where('user_program_id', $validated['user_program_id'])
@@ -115,9 +138,10 @@ class WeeklyReportController extends Controller
         return response()->json($report->load('userProgram'), 201);
     }
 
-    public function submit(WeeklyReport $weeklyReport): JsonResponse
+    public function submit(Request $request, WeeklyReport $weeklyReport): JsonResponse
     {
-        if ($weeklyReport->status !== 'draft') {
+        $this->authorize('submit', $weeklyReport);
+        if (! in_array($weeklyReport->status, ['draft', 'needs_revision'], true)) {
             return response()->json(['message' => 'Only draft reports can be submitted'], 422);
         }
 
@@ -126,9 +150,8 @@ class WeeklyReportController extends Controller
             'submitted_at' => now(),
         ]);
 
-        // Notify the student that report was submitted
-        NotificationService::notifyReportSubmitted(
-            $weeklyReport->userProgram->user_id,
+        $this->notifications->notifyReviewersOfSubmission(
+            $weeklyReport->userProgram->loadMissing(['user', 'supervisor', 'coordinator']),
             'Weekly',
             $weeklyReport->id
         );
@@ -142,20 +165,8 @@ class WeeklyReportController extends Controller
             'review_comment' => ['nullable', 'string'],
         ]);
 
-        $weeklyReport->update([
-            'status' => 'approved',
-            'reviewed_by' => auth()->id(),
-            'review_comment' => $validated['review_comment'] ?? null,
-        ]);
-
-        // Notify the student that report was approved
-        NotificationService::notifyReportApproved(
-            $weeklyReport->userProgram->user_id,
-            'Weekly',
-            $weeklyReport->id
-        );
-
-        return response()->json($weeklyReport);
+        $this->authorize('review', $weeklyReport);
+        return response()->json($this->approvals->review($request->user(), $weeklyReport, 'approved', $validated['review_comment'] ?? null));
     }
 
     public function reject(Request $request, WeeklyReport $weeklyReport): JsonResponse
@@ -164,21 +175,8 @@ class WeeklyReportController extends Controller
             'review_comment' => ['required', 'string'],
         ]);
 
-        $weeklyReport->update([
-            'status' => 'rejected',
-            'reviewed_by' => auth()->id(),
-            'review_comment' => $validated['review_comment'],
-        ]);
-
-        // Notify the student that report was rejected
-        NotificationService::notifyReportRejected(
-            $weeklyReport->userProgram->user_id,
-            'Weekly',
-            $weeklyReport->id,
-            $validated['review_comment']
-        );
-
-        return response()->json($weeklyReport);
+        $this->authorize('review', $weeklyReport);
+        return response()->json($this->approvals->review($request->user(), $weeklyReport, 'rejected', $validated['review_comment']));
     }
 
     public function requestRevision(Request $request, WeeklyReport $weeklyReport): JsonResponse
@@ -187,25 +185,13 @@ class WeeklyReportController extends Controller
             'review_comment' => ['required', 'string'],
         ]);
 
-        $weeklyReport->update([
-            'status' => 'needs_revision',
-            'reviewed_by' => auth()->id(),
-            'review_comment' => $validated['review_comment'],
-        ]);
-
-        // Notify the student that report needs revision
-        NotificationService::notifyReportNeedsRevision(
-            $weeklyReport->userProgram->user_id,
-            'Weekly',
-            $weeklyReport->id,
-            $validated['review_comment']
-        );
-
-        return response()->json($weeklyReport);
+        $this->authorize('review', $weeklyReport);
+        return response()->json($this->approvals->review($request->user(), $weeklyReport, 'needs_revision', $validated['review_comment']));
     }
 
     public function destroy(WeeklyReport $weeklyReport): JsonResponse
     {
+        $this->authorize('delete', $weeklyReport);
         // Only allow deletion of draft reports
         if ($weeklyReport->status !== 'draft') {
             return response()->json(['message' => 'Cannot delete non-draft report'], 422);
