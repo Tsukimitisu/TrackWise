@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EvaluationRequest;
 use App\Models\Evaluation;
+use App\Models\UserProgram;
+use App\Services\AccessScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,7 +14,10 @@ class EvaluationController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Evaluation::query()->with(['userProgram', 'supervisor']);
+        $this->authorize('viewAny', Evaluation::class);
+        $query = Evaluation::query()
+            ->whereIn('user_program_id', AccessScope::assignmentIds($request->user()))
+            ->with(['userProgram.user', 'supervisor']);
 
         // Filter by user_program_id
         if ($request->has('user_program_id')) {
@@ -29,19 +34,25 @@ class EvaluationController extends Controller
 
     public function store(EvaluationRequest $request): JsonResponse
     {
-        $request->merge(['supervisor_id' => auth()->id()]);
-        $evaluation = Evaluation::create($request->validated());
+        $this->authorize('create', Evaluation::class);
+        $payload = $request->validated();
+        $assignment = UserProgram::query()->findOrFail($payload['user_program_id']);
+        abort_unless(AccessScope::canReviewAssignment($request->user(), $assignment), 403);
+        $payload['supervisor_id'] = $request->user()->id;
+        $evaluation = Evaluation::create($payload);
 
         return response()->json($evaluation->load(['userProgram', 'supervisor']), 201);
     }
 
     public function show(Evaluation $evaluation): JsonResponse
     {
+        $this->authorize('view', $evaluation);
         return response()->json($evaluation->load(['userProgram', 'supervisor']));
     }
 
     public function update(Request $request, Evaluation $evaluation): JsonResponse
     {
+        $this->authorize('update', $evaluation);
         $validated = $request->validate([
             'attendance_score' => ['nullable', 'integer', 'min:1', 'max:5'],
             'performance_score' => ['nullable', 'integer', 'min:1', 'max:5'],
@@ -58,6 +69,7 @@ class EvaluationController extends Controller
 
     public function destroy(Evaluation $evaluation): JsonResponse
     {
+        $this->authorize('delete', $evaluation);
         $evaluation->delete();
 
         return response()->json(['message' => 'Evaluation deleted.']);
@@ -65,6 +77,7 @@ class EvaluationController extends Controller
 
     public function getAverageScore(Evaluation $evaluation): JsonResponse
     {
+        $this->authorize('view', $evaluation);
         $scores = [
             $evaluation->attendance_score,
             $evaluation->performance_score,
