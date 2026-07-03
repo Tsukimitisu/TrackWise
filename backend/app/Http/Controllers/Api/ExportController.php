@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DailyReport;
 use App\Models\WeeklyReport;
 use App\Models\UserProgram;
+use App\Services\AccessScope;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
 
@@ -13,7 +14,13 @@ class ExportController extends Controller
 {
     public function exportDailyReports(Request $request): Response
     {
-        $query = DailyReport::with(['userProgram.user', 'userProgram.program']);
+        $query = DailyReport::query()
+            ->whereIn('user_program_id', AccessScope::assignmentIds($request->user()))
+            ->with([
+                'userProgram.user',
+                'userProgram.program',
+                'userProgram.attendanceLogs' => fn ($attendance) => $attendance->where('approval_status', 'approved'),
+            ]);
 
         if ($request->has('status')) {
             $query->where('status', $request->status);
@@ -34,7 +41,9 @@ class ExportController extends Controller
                 $report->userProgram?->user?->name ?? 'N/A',
                 $report->userProgram?->program?->name ?? 'N/A',
                 str_replace('"', '""', $report->tasks_done ?? ''),
-                $report->hours_worked ?? 0,
+                $report->userProgram?->attendanceLogs
+                    ?->first(fn ($log) => $log->date?->toDateString() === $report->report_date?->toDateString())
+                    ?->total_hours ?? 0,
                 $report->status,
                 $report->submitted_at ?? 'N/A'
             );
@@ -47,7 +56,9 @@ class ExportController extends Controller
 
     public function exportWeeklyReports(Request $request): Response
     {
-        $query = WeeklyReport::with(['userProgram.user', 'userProgram.program']);
+        $query = WeeklyReport::query()
+            ->whereIn('user_program_id', AccessScope::assignmentIds($request->user()))
+            ->with(['userProgram.user', 'userProgram.program']);
 
         if ($request->has('status')) {
             $query->where('status', $request->status);
@@ -81,7 +92,8 @@ class ExportController extends Controller
 
     public function exportAssignments(Request $request): Response
     {
-        $query = UserProgram::with(['user', 'program', 'supervisor', 'coordinator']);
+        $query = AccessScope::assignments(UserProgram::query(), $request->user())
+            ->with(['user', 'program', 'supervisor', 'coordinator']);
 
         if ($request->has('status')) {
             $query->where('status', $request->status);
@@ -112,9 +124,12 @@ class ExportController extends Controller
 
     public function exportStudentData(Request $request): Response
     {
-        $validated = $request->validate(['user_program_id' => 'required|integer']);
+        $validated = $request->validate(['user_program_id' => 'required|integer|exists:user_programs,id']);
         
-        $assignment = UserProgram::with(['user', 'program', 'dailyReports', 'weeklyReports'])
+        $assignment = AccessScope::assignments(UserProgram::query(), $request->user())
+            ->with(['user', 'program', 'dailyReports', 'weeklyReports', 'attendanceLogs' => fn ($query) =>
+                $query->where('approval_status', 'approved')
+            ])
             ->findOrFail($validated['user_program_id']);
 
         // Generate comprehensive CSV with student info
@@ -136,7 +151,9 @@ class ExportController extends Controller
                 '"%s","%s",%f,"%s"' . "\n",
                 $report->report_date,
                 str_replace('"', '""', $report->tasks_done ?? ''),
-                $report->hours_worked ?? 0,
+                $assignment->attendanceLogs
+                    ->first(fn ($log) => $log->date?->toDateString() === $report->report_date?->toDateString())
+                    ?->total_hours ?? 0,
                 $report->status
             );
         }
