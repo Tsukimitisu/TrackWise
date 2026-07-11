@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Role;
 use App\Models\User;
+use Database\Seeders\DemoUserSeeder;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -62,6 +64,22 @@ class AuthAndUsersTest extends TestCase
             'email' => $user->email,
             'password' => 'Password123!',
         ])->assertOk()->assertJsonStructure(['user', 'token']);
+    }
+
+    public function test_documented_demo_credentials_can_login(): void
+    {
+        $this->seed([
+            RoleSeeder::class,
+            DemoUserSeeder::class,
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => 'superadmin@trackwise.test',
+            'password' => 'Password123!',
+        ])->assertOk()
+            ->assertJsonPath('user.email', 'superadmin@trackwise.test')
+            ->assertJsonPath('user.role.name', 'Super Admin')
+            ->assertJsonStructure(['token']);
     }
 
     public function test_resend_verification_and_password_reset_requests_send_email(): void

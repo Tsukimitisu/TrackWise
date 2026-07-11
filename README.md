@@ -55,7 +55,7 @@ npm run dev
 
 Confirm the backend is at `http://127.0.0.1:8000` and the frontend dev URL from Vite.
 
-Seeded demo accounts use the `DEMO_PASSWORD` environment variable if set, otherwise a secure password is generated and displayed when running the seeder:
+Seeded demo accounts use the `DEMO_PASSWORD` environment variable. The local example defaults it to `Password123!`, matching the credentials shown on the login page:
 
 | Role | Email |
 |---|---|

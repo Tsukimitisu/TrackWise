@@ -9,7 +9,6 @@ use App\Models\UserProgram;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class DemoUserSeeder extends Seeder
 {
@@ -36,7 +35,7 @@ class DemoUserSeeder extends Seeder
         ])->get()->keyBy('name');
 
         $provided = env('DEMO_PASSWORD');
-        $plainPassword = $provided ?: Str::random(12);
+        $plainPassword = $provided ?: 'Password123!';
         $password = Hash::make($plainPassword);
 
         $accounts = [
@@ -64,7 +63,7 @@ class DemoUserSeeder extends Seeder
         }
 
         if ($this->command ?? false) {
-            $this->command->info('Demo user password: ' . $plainPassword . ($provided ? ' (from DEMO_PASSWORD env)' : ' (generated)'));
+            $this->command->info('Demo user password: ' . $plainPassword . ($provided ? ' (from DEMO_PASSWORD env)' : ' (local default)'));
         }
 
         $program = Program::query()->firstOrCreate(
