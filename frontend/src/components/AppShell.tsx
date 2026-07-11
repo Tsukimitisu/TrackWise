@@ -29,6 +29,33 @@ function Icon({ name, className = 'h-5 w-5' }: { name: NavIconName; className?: 
   );
 }
 
+function CloseIcon({ className = 'h-5 w-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 6l12 12" />
+      <path d="M18 6 6 18" />
+    </svg>
+  );
+}
+
+function MenuIcon({ className = 'h-5 w-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 7h16" />
+      <path d="M4 12h16" />
+      <path d="M4 17h16" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon({ className = 'h-4 w-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  );
+}
+
 const roleLabel: Record<string, string> = {
   Student: 'Student workspace',
   Supervisor: 'Supervisor workspace',
@@ -81,7 +108,7 @@ export default function AppShell() {
             </span>
           </Link>
           <button type="button" onClick={() => setMobileOpen(false)} className="grid h-9 w-9 place-items-center rounded-lg text-slate-300 hover:bg-white/10 lg:hidden" aria-label="Close navigation">
-            <span className="text-2xl leading-none">×</span>
+            <CloseIcon />
           </button>
         </div>
 
@@ -113,7 +140,7 @@ export default function AppShell() {
               <span className="block truncate text-sm font-semibold">{user?.first_name} {user?.last_name}</span>
               <span className="block truncate text-xs text-slate-400">{user?.role.name}</span>
             </span>
-            <span className="text-slate-500">›</span>
+            <ChevronRightIcon className="h-4 w-4 text-slate-500" />
           </Link>
         </div>
       </aside>
@@ -123,7 +150,7 @@ export default function AppShell() {
           <div className="flex h-20 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
             <div className="flex min-w-0 items-center gap-3">
               <button type="button" onClick={() => setMobileOpen(true)} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 lg:hidden" aria-label="Open navigation">
-                <span className="text-xl">☰</span>
+                <MenuIcon />
               </button>
               <div className="min-w-0">
                 <p className="truncate text-lg font-bold text-slate-950">{currentPage?.label ?? 'TrackWise'}</p>
