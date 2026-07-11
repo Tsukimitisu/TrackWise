@@ -142,9 +142,11 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Analytics
-    Route::get('/analytics/dashboard', [AnalyticsController::class, 'dashboard']);
-    Route::get('/analytics/reports', [AnalyticsController::class, 'reportStats']);
-    Route::get('/analytics/assignments', [AnalyticsController::class, 'assignmentStats']);
+    Route::middleware('role:admin,coordinator')->group(function () {
+        Route::get('/analytics/dashboard', [AnalyticsController::class, 'dashboard']);
+        Route::get('/analytics/reports', [AnalyticsController::class, 'reportStats']);
+        Route::get('/analytics/assignments', [AnalyticsController::class, 'assignmentStats']);
+    });
 
     // Admin statistics
     Route::middleware('role:admin,coordinator')->group(function () {
